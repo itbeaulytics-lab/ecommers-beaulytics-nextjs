@@ -1,65 +1,80 @@
-import Image from "next/image";
+import Hero from "@/components/Hero";
+import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
+import ProductCard from "@/components/ProductCard";
+import { getServerSupabaseRSC } from "@/lib/supabaseServerRSC";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export default async function Home() {
+  const supabase = await getServerSupabaseRSC();
+  const { data: featured } = await supabase
+    .from("products")
+    .select("id,name,price,image")
+    .eq("featured", true)
+    .limit(4);
+  let rows = featured ?? [];
+  if (!rows || rows.length === 0) {
+    const { data: top } = await supabase
+      .from("products")
+      .select("id,name,price,image")
+      .limit(4);
+    rows = top ?? [];
+  }
+  const items = rows.map((r: any) => ({ id: String(r.id), name: r.name, price: Number(r.price) || 0, image: r.image || "/vercel.svg", rating: 0 }));
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main>
+      <Hero />
+      <section className="py-12 sm:py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 text-center">
+            <Badge>Best Sellers</Badge>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-brand-dark">Produk unggulan</h2>
+            <p className="mt-2 text-sm text-brand-light">Pilihan populer dengan rating tinggi.</p>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {items.map((p) => (
+              <ProductCard key={p.id} product={{ id: p.id, name: p.name, price: p.price, image: p.image, rating: p.rating }} />
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+      <section className="py-12 sm:py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-6 lg:grid-cols-3">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-brand-dark">Bahan premium</h3>
+              <p className="mt-2 text-sm text-brand-light">Niacinamide, Vitamin C, Hyaluronic Acid dengan standar kualitas tinggi.</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-brand-dark">Aman untuk kulit</h3>
+              <p className="mt-2 text-sm text-brand-light">Dermatologically tested, cocok untuk semua jenis kulit.</p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-brand-dark">Ritual minimalis</h3>
+              <p className="mt-2 text-sm text-brand-light">Rutinitas sederhana, hasil maksimal.</p>
+            </Card>
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+      <section className="py-12 sm:py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 text-center">
+            <Badge variant="outline">Testimonials</Badge>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-brand-dark">Apa kata mereka</h2>
+            <p className="mt-2 text-sm text-brand-light">Kulit lembut, glowing, dan sehat.</p>
+          </div>
+          <div className="grid gap-6 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i} className="p-6">
+                <p className="text-sm text-brand-dark">&quot;Produk ini bikin kulitku halus dan cerah. Teksturnya nyaman.&quot;</p>
+                <div className="mt-3 text-xs text-brand-light">— Beaulytics Customer</div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
