@@ -30,7 +30,6 @@ export default async function RootLayout({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const hasSession = !!user;
   const publicEnv = {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.SUPABASE_ANON_KEY,
@@ -47,7 +46,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-brand-dark min-h-screen flex flex-col`}
       >
-        <Navbar hasSession={hasSession} />
+        <Navbar user={user} />
         <main className="flex-1">{children}</main>
         <CompareBar />
         <Footer />

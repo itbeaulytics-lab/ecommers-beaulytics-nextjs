@@ -6,12 +6,26 @@ export type Product = {
   rating: number; // 0..5
   skinType: string;
   keyIngredients: string[];
+  ingredients: string[];
   benefits: string[];
   size: string; // e.g. "100 ml"
   category: string;
+  category_id: number;
+  product_type_id: number;
+  usages: number;
 };
 
-export type category = {
+export type Review = {
   id: string;
-  name: string;
+  user_id: string;
+  product_id: string | number; // Jaga-jaga bisa string atau number
+  rating: number;
+  comment: string | null;      // Komentar bisa kosong (null)
+  created_at: string;          // Supabase return string, bukan Date
+
+  // Penting! Ini untuk menampung data join dari tabel users
+  user?: {
+    full_name?: string | null;
+    email?: string | null;
+  } | null;
 };

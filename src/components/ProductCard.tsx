@@ -14,6 +14,8 @@ type Props = {
     price: number;
     image?: string;
     rating?: number;
+    category?: string;
+    ingredients?: string[];
   };
 };
 
@@ -45,7 +47,7 @@ export default function ProductCard({ product }: Props) {
           <Rating className="mt-2" value={product.rating} />
         )}
         <div className="mt-4 flex items-center gap-2">
-          <Button type="button" onClick={() => addToCart({ id: product.id, name: product.name, price: product.price, image: product.image })} aria-label={`Add ${product.name} to cart`}>Add to Cart</Button>
+          <Button type="button" onClick={() => addToCart({ id: product.id, name: product.name, price: product.price, image: product.image, category: product.category, ingredients: product.ingredients })} aria-label={`Add ${product.name} to cart`}>Add to Cart</Button>
           <Button
             variant="ghost"
             onClick={() => (selected ? removeCompare(product.id) : addCompare({ id: product.id, name: product.name, image: product.image ?? "/vercel.svg" }))}

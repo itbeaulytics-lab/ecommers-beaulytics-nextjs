@@ -4,14 +4,19 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import type { Product } from "@/types/product";
 import { useCartStore } from "@/store/cartStore";
+import { analyzeIngredients } from "@/lib/ingredientMatcher";
+import type { UserProfile } from "@/types/user";
 
-type Props = { products?: Product[] };
+type Props = {
+  products?: Product[];
+  userProfile?: UserProfile | null;
+};
 
 function formatRp(n: number) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 }
 
-export default function ProductComparison({ products }: Props) {
+export default function ProductComparison({ products, userProfile }: Props) {
   const items = products ?? [];
   const bestPrice = items.length ? Math.min(...items.map((p) => p.price)) : undefined;
   const bestRating = items.length ? Math.max(...items.map((p) => p.rating)) : undefined;
@@ -52,7 +57,20 @@ export default function ProductComparison({ products }: Props) {
                     </div>
                     <div className="rounded-xl p-2">
                       <div className="text-brand-light">Key Ingredients</div>
-                      <div className="font-semibold text-brand-dark">{p.keyIngredients.join(", ")}</div>
+                      <div className="font-semibold text-brand-dark text-xs mt-1 space-y-1">
+                        {p.keyIngredients.map((ing, idx) => {
+                          const warnings = userProfile ? analyzeIngredients([ing], userProfile) : [];
+                          const hasWarning = warnings.length > 0;
+                          return (
+                            <div key={idx} className={`flex items-start gap-1 ${hasWarning ? "text-red-500" : ""}`}>
+                              {hasWarning && (
+                                <span title={warnings.join("\n")} className="cursor-help text-red-600 font-bold">⚠️</span>
+                              )}
+                              <span>{ing}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                     <div className="rounded-xl p-2">
                       <div className="text-brand-light">Benefits</div>
@@ -68,7 +86,7 @@ export default function ProductComparison({ products }: Props) {
                     </div>
                   </div>
                   <div className="mt-4 text-center">
-                    <Button type="button" aria-label={`Add ${p.name} to cart`} onClick={() => addToCart({ id: p.id, name: p.name, price: p.price, image: p.image })}>Add to Cart</Button>
+                    <Button type="button" aria-label={`Add ${p.name} to cart`} onClick={() => addToCart({ id: p.id, name: p.name, price: p.price, image: p.image, category: p.category, ingredients: p.ingredients })}>Add to Cart</Button>
                   </div>
                 </div>
               ))}

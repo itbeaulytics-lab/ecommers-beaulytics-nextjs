@@ -2,17 +2,17 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { useCartStore } from "@/store/cartStore";
 
 type NavbarProps = {
-  hasSession?: boolean;
+  user: User | null;
 };
 
-export default function Navbar({ hasSession = false }: NavbarProps) {
+export default function Navbar({ user }: NavbarProps) {
   const [open, setOpen] = useState(false);
   const count = useCartStore((s) => s.items.reduce((sum, i) => sum + i.qty, 0));
-
-  const accountHref = hasSession ? "/dashboard" : "/auth";
+  const userInitial = user?.email?.[0]?.toUpperCase() ?? "";
   return (
     <nav className="sticky top-0 z-50 border-b border-brand-primary/20 bg-white/80 backdrop-blur">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -33,12 +33,24 @@ export default function Navbar({ hasSession = false }: NavbarProps) {
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
             </button>
-            <Link aria-label="Account" href={accountHref} className="hidden md:flex h-9 w-9 items-center justify-center rounded-full bg-brand-secondary text-brand-dark ring-1 ring-black/5">
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21a8 8 0 0 0-16 0" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </Link>
+            {user ? (
+              <Link
+                aria-label="Account"
+                href="/dashboard"
+                className="hidden md:inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-secondary text-brand-dark ring-1 ring-black/5"
+                title={user.email || "Dashboard"}
+              >
+                <span className="text-sm font-semibold">{userInitial || "•"}</span>
+              </Link>
+            ) : (
+              <Link
+                aria-label="Login"
+                href="/auth/login"
+                className="hidden md:inline-flex items-center rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white ring-1 ring-brand-primary/50 hover:bg-brand-primary-hover"
+              >
+                Login
+              </Link>
+            )}
             <Link aria-label="Cart" href="/cart" className="hidden md:flex relative h-9 w-9 items-center justify-center rounded-full bg-brand-primary text-white ring-1 ring-brand-primary/50 hover:bg-brand-primary-hover">
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="9" cy="20" r="1.5" />
@@ -68,12 +80,24 @@ export default function Navbar({ hasSession = false }: NavbarProps) {
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
             </button>
-            <Link aria-label="Account" href={accountHref} className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-secondary text-brand-dark ring-1 ring-black/5">
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21a8 8 0 0 0-16 0" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </Link>
+            {user ? (
+              <Link
+                aria-label="Account"
+                href="/dashboard"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-secondary text-brand-dark ring-1 ring-black/5"
+                title={user.email || "Dashboard"}
+              >
+                <span className="text-sm font-semibold">{userInitial || "•"}</span>
+              </Link>
+            ) : (
+              <Link
+                aria-label="Login"
+                href="/auth/login"
+                className="flex items-center rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white ring-1 ring-brand-primary/50 hover:bg-brand-primary-hover"
+              >
+                Login
+              </Link>
+            )}
             <Link aria-label="Cart" href="/cart" className="flex relative h-9 w-9 items-center justify-center rounded-full bg-brand-primary text-white ring-1 ring-brand-primary/50 hover:bg-brand-primary-hover">
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="9" cy="20" r="1.5" />

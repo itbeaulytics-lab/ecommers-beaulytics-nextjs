@@ -7,12 +7,19 @@ function formatRp(n: number) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 }
 
+import { generateRoutine } from "@/lib/routineGenerator";
+import RoutineSuggestion from "@/components/RoutineSuggestion";
+import { useMemo } from "react";
+
 export default function CartPage() {
   const items = useCartStore((s) => s.items);
   const update = useCartStore((s) => s.update);
   const remove = useCartStore((s) => s.remove);
   const clear = useCartStore((s) => s.clear);
   const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
+
+  const routine = useMemo(() => generateRoutine(items), [items]);
+
   return (
     <section className="py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -28,29 +35,32 @@ export default function CartPage() {
           </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-4">
-              {items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between rounded-xl bg-white p-4 shadow-sm ring-1 ring-black/5">
-                  <div>
-                    <div className="text-sm font-medium text-brand-dark">{item.name}</div>
-                    <div className="text-xs text-brand-light">Qty {item.qty}</div>
+            <div className="lg:col-span-2">
+              <div className="space-y-4">
+                {items.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between rounded-xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+                    <div>
+                      <div className="text-sm font-medium text-brand-dark">{item.name}</div>
+                      <div className="text-xs text-brand-light">Qty {item.qty}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min={1}
+                        value={item.qty}
+                        onChange={(e) => update(item.id, Number(e.target.value))}
+                        className="w-16 rounded-2xl border border-neutral-200 px-2 py-1 text-sm"
+                        aria-label={`Update quantity for ${item.name}`}
+                      />
+                      <Button variant="ghost" type="button" onClick={() => remove(item.id)}>Remove</Button>
+                      <div className="text-sm font-semibold text-brand-dark">{formatRp(item.price * item.qty)}</div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min={1}
-                      value={item.qty}
-                      onChange={(e) => update(item.id, Number(e.target.value))}
-                      className="w-16 rounded-2xl border border-neutral-200 px-2 py-1 text-sm"
-                      aria-label={`Update quantity for ${item.name}`}
-                    />
-                    <Button variant="ghost" type="button" onClick={() => remove(item.id)}>Remove</Button>
-                    <div className="text-sm font-semibold text-brand-dark">{formatRp(item.price * item.qty)}</div>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              <RoutineSuggestion routine={routine} />
             </div>
-            <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-black/5">
+            <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-black/5 h-fit">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-brand-light">Subtotal</div>
                 <div className="text-sm font-semibold text-brand-dark">{formatRp(subtotal)}</div>

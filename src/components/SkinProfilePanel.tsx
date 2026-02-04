@@ -1,75 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import type { User } from '@supabase/supabase-js';
 import Card from '@/components/ui/Card';
-import { getSupabaseClient } from '@/lib/supabaseClient';
+import Badge from '@/components/ui/Badge';
 
-type SkinProfile = { summary?: string; answers?: Record<string, string>; updated_at?: string };
+type SkinProfilePanelProps = {
+  user: User;
+};
 
-export default function SkinProfilePanel() {
-  const [loading, setLoading] = useState(true);
-  const [items, setItems] = useState<string[]>([]);
-  const [isAiGenerated, setIsAiGenerated] = useState(false);
+export default function SkinProfilePanel({ user }: SkinProfilePanelProps) {
+  const meta = (user?.user_metadata || {}) as any;
+  const summaryText = (meta?.skin_profile?.summary as string) || (meta?.skinshort as string) || "";
+  const tagsInput = meta?.skin_tags as unknown;
+  const fromTags = Array.isArray(tagsInput) ? tagsInput : [];
+  const summaryFallback = summaryText
+    .split(',')
+    .map((s: string) => s.trim())
+    .filter((s: string) => s.length > 0);
+  const tags = (fromTags.length ? fromTags : summaryFallback).filter(
+    (s) => typeof s === 'string' && s.trim().length > 0 && s.trim().length <= 60,
+  ) as string[];
 
-  useEffect(() => {
-    const supabase = getSupabaseClient();
-    async function load() {
-      try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        const session = sessionData?.session;
-        if (!session) {
-          setItems([]);
-          return;
-        }
-        const user = session.user;
-
-        if (user) {
-          const userMeta = user.user_metadata as any;
-          const userSkin = userMeta?.skin_profile as SkinProfile | undefined;
-          const summaryText = userSkin?.summary || (userMeta?.skinshort as string | undefined) || "";
-          const manualTags = (userMeta?.skin_tags as string[]) || (userSkin as any)?.tags || [];
-          const MAX_CHIP_LENGTH = 60;
-
-          if (summaryText) {
-            const aiKeywords = summaryText
-              .split(",")
-              .map((s) => s.trim())
-              .filter((s) => s.length > 0 && s.length <= MAX_CHIP_LENGTH);
-            if (aiKeywords.length) {
-              setItems(aiKeywords);
-              setIsAiGenerated(true);
-            } else if (manualTags.length) {
-              const cleanedTags = manualTags.filter((s) => typeof s === "string" && s.trim().length > 0 && s.length <= MAX_CHIP_LENGTH);
-              if (cleanedTags.length) {
-                setItems(cleanedTags);
-                setIsAiGenerated(false);
-              }
-            }
-          } else if (manualTags.length) {
-            const cleanedTags = manualTags.filter((s) => typeof s === "string" && s.trim().length > 0 && s.length <= MAX_CHIP_LENGTH);
-            if (cleanedTags.length) {
-              setItems(cleanedTags);
-              setIsAiGenerated(false);
-            }
-          }
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, []);
-
-  if (loading) {
-    return (
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold text-brand-dark">Skin Profile</h2>
-        <div className="mt-4 text-sm text-brand-light">Memuat…</div>
-      </Card>
-    );
-  }
-
-  if (!items.length) {
+  if (!tags.length) {
     return (
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-brand-dark">Skin Profile</h2>
@@ -84,18 +36,13 @@ export default function SkinProfilePanel() {
     <Card className="p-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-brand-dark">Skin Profile</h2>
-        {isAiGenerated ? (
-          <span className="text-[10px] font-medium uppercase tracking-wider text-brand-primary">AI Analysis</span>
-        ) : null}
+        <span className="text-[10px] font-medium uppercase tracking-wider text-brand-primary">AI Analysis</span>
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        {items.map((item, idx) => (
-          <span
-            key={`${item}-${idx}`}
-            className="inline-flex items-center rounded-full bg-brand-secondary/70 px-4 py-2 text-sm font-semibold text-brand-dark ring-1 ring-inset ring-brand-primary/30"
-          >
+        {tags.map((item, idx) => (
+          <Badge key={`${item}-${idx}`} variant="outline" className="rounded-2xl bg-white px-4 py-2 text-sm">
             {item}
-          </span>
+          </Badge>
         ))}
       </div>
     </Card>

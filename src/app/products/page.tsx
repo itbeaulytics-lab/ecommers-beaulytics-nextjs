@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import FilterBar from "@/components/FilterBar";
 import ProductGrid from "@/components/ProductGrid";
 
@@ -12,9 +13,13 @@ export default async function ProductsPage() {
           <h1 className="text-3xl font-semibold tracking-tight text-brand-dark">Products</h1>
           <p className="mt-2 text-sm text-brand-light">Beaulytics skincare catalog.</p>
         </div>
-        <FilterBar />
+        <Suspense fallback={<div className="text-sm text-brand-light">Loading filters…</div>}>
+          <FilterBar />
+        </Suspense>
         <div className="mt-6">
-          <ProductGrid />
+          <Suspense fallback={<div className="text-sm text-brand-light">Loading products…</div>}>
+            <ProductGrid />
+          </Suspense>
         </div>
       </div>
     </section>

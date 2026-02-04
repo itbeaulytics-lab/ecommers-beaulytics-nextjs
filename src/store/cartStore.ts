@@ -7,11 +7,13 @@ export type CartItem = {
   price: number;
   image?: string;
   qty: number;
+  category?: string;
+  ingredients?: string[];
 };
 
 type State = {
   items: CartItem[];
-  add: (p: { id: string; name: string; price: number; image?: string }, qty?: number) => void;
+  add: (p: { id: string; name: string; price: number; image?: string; category?: string; ingredients?: string[] }, qty?: number) => void;
   remove: (id: string) => void;
   update: (id: string, qty: number) => void;
   clear: () => void;

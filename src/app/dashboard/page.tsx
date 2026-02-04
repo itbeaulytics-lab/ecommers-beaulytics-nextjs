@@ -1,20 +1,14 @@
-import { redirect } from "next/navigation";
 import { getServerSupabaseRSC } from "@/lib/supabaseServerRSC";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { updateProfile } from "@/actions/profile";
 import SkinProfilePanel from "@/components/SkinProfilePanel";
 import LogoutButton from "@/components/LogoutButton";
+import { requireUser } from "@/lib/authHelpers";
 
 export default async function DashboardPage() {
+  const user = await requireUser();
   const supabase = await getServerSupabaseRSC();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-  if (userError || !user) {
-    redirect("/auth/login");
-  }
   const { data: profile } = await supabase.from("users").select("full_name, avatar_url, email").eq("id", user?.id).single();
   type OrderRow = { id: string; total: number; created_at: string; status: string };
   const { data: orders } = await supabase
@@ -44,7 +38,7 @@ export default async function DashboardPage() {
               <LogoutButton />
             </div>
           </Card>
-          <SkinProfilePanel />
+          <SkinProfilePanel user={user} />
           <Card className="p-6 lg:col-span-2">
             <h2 className="text-lg font-semibold text-brand-dark">Order History</h2>
             <div className="mt-4 space-y-3">

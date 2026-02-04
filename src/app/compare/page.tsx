@@ -4,11 +4,14 @@ import { useCompareStore } from "@/store/compareStore";
 import type { Product } from "@/types/product";
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseClient } from "@/lib/supabaseClient";
+import { getUserProfile } from "@/lib/ingredientMatcher";
+import type { UserProfile } from "@/types/user";
 
 export default function ComparePage() {
   const items = useCompareStore((s) => s.items);
   const ids = useMemo(() => items.map((i) => i.id), [items]);
   const [selected, setSelected] = useState<Product[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -23,6 +26,13 @@ export default function ComparePage() {
       setError("");
       try {
         const supabase = getSupabaseClient();
+
+        // Fetch User
+        const { data: { user } } = await supabase.auth.getUser();
+        if (active && user) {
+          setUserProfile(getUserProfile(user));
+        }
+
         const { data, error } = await supabase
           .from("products")
           .select("id,name,price,ingredients,concerns,skin_type,size,image")
@@ -36,6 +46,7 @@ export default function ComparePage() {
           rating: 0,
           skinType: Array.isArray(r.skin_type) ? r.skin_type.join(", ") : String(r.skin_type ?? ""),
           keyIngredients: Array.isArray(r.ingredients) ? r.ingredients : [],
+          ingredients: Array.isArray(r.ingredients) ? r.ingredients : [], // Populate ingredients
           benefits: Array.isArray(r.concerns) ? r.concerns : [],
           size: String(r.size ?? ""),
           category: "",
@@ -65,7 +76,7 @@ export default function ComparePage() {
           <div className="my-4 text-sm text-brand-light">Loading…</div>
         </div>
       ) : null}
-      <ProductComparison products={selected} />
+      <ProductComparison products={selected} userProfile={userProfile} />
     </div>
   );
 }

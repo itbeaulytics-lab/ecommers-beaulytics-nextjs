@@ -3,13 +3,12 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import ProductCard from "@/components/ProductCard";
 import { getSupabaseClient } from "@/lib/supabaseClient";
-
-type Row = { id: string; name: string; price: number; image?: string; rating?: number; category?: string };
+import type { Product } from "@/types/product";
 
 export default function ProductGrid() {
   const params = useSearchParams();
   const key = params.toString();
-  const [items, setItems] = useState<Row[]>([]);
+  const [items, setItems] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
 
@@ -27,28 +26,46 @@ export default function ProductGrid() {
 
         let query = supabase
           .from("products")
-          .select("id,name,price,category,image");
+          .select("id,name,price,image,rating,category_id,product_type_id,usages,product_categories(name)");
 
         if (category) query = query.eq("category", category);
         if (priceMin !== undefined) query = query.gte("price", priceMin);
         if (priceMax !== undefined) query = query.lte("price", priceMax);
 
+        if (sort === "price_asc") {
+          query = query.order("price", { ascending: true });
+        } else if (sort === "price_desc") {
+          query = query.order("price", { ascending: false });
+        } else {
+          // default/new
+          query = query.order("created_at", { ascending: false });
+        }
+
         const { data, error } = await query;
         if (error) throw error;
-        let list: Row[] = (data || []).map((r: any) => ({
+        const list: Product[] = (data || []).map((r: any) => ({
           id: String(r.id),
           name: r.name,
           price: Number(r.price) || 0,
-          image: r.image || undefined,
-          rating: r.rating !== undefined && r.rating !== null ? Number(r.rating) : undefined,
-          category: r.category || undefined,
+          image: r.image || "",
+          rating: Number(r.rating ?? 0) || 0,
+          skinType: r.skinType || "",
+          keyIngredients: Array.isArray(r.keyIngredients) ? r.keyIngredients : [],
+          benefits: Array.isArray(r.benefits) ? r.benefits : [],
+          size: r.size || "",
+          category: r.product_categories?.name || "",
+          category_id: Number(r.category_id) || 0,
+          product_type_id: Number(r.product_type_id) || 0,
+          usages: Number(r.usages) || 0,
+          ingredients: Array.isArray(r.keyIngredients) ? r.keyIngredients : [],
         }));
-        if (sort === "price_asc") list = [...list].sort((a, b) => a.price - b.price);
-        if (sort === "price_desc") list = [...list].sort((a, b) => b.price - a.price);
-        if (sort === "rating") list = [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0));
         if (active) setItems(list);
       } catch (e: any) {
-        if (active) setError(e.message || "Failed to load products");
+        console.error("🔥 ProductGrid Error:", e?.message || e);
+        if (e?.details) {
+          console.error("Details:", e.details);
+        }
+        if (active) setError(e?.message || "Gagal memuat produk");
       } finally {
         if (active) setLoading(false);
       }
@@ -69,7 +86,7 @@ export default function ProductGrid() {
       ) : null}
       <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
         {items.map((p) => (
-          <ProductCard key={p.id} product={{ id: p.id, name: p.name, price: p.price, image: p.image, rating: p.rating }} />
+          <ProductCard key={p.id} product={{ id: p.id, name: p.name, price: p.price, image: p.image, rating: p.rating, category: p.category, ingredients: p.keyIngredients }} />
         ))}
       </div>
     </div>

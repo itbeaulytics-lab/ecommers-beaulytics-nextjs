@@ -1,39 +1,103 @@
+import { Suspense } from "react";
 import { getServerSupabase } from "@/lib/supabaseServer";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Rating from "@/components/ui/Rating";
 import { addToCart } from "@/actions/cart";
-import { addReview } from "@/actions/reviews";
+import ReviewForm from "@/components/reviews/ReviewForm";
+import ReviewList from "@/components/reviews/ReviewList";
+import type { Product } from "@/types/product";
 
 type Params = { params: Promise<{ id: string }> };
 
 export default async function ProductDetailPage({ params }: Params) {
   const { id } = await params;
   const supabase = await getServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const { data } = await supabase
     .from("products")
-    .select("id,name,price,description,brand,ingredients,skin_type,how_to_use,size,image,concerns,category,tokopedia_url,shopee_url")
+    .select(
+      "id,name,price,description,brand,ingredients,skin_type,how_to_use,size,image,concerns,category,tokopedia_url,shopee_url,category_id,product_type_id,usages,rating"
+    )
     .eq("id", id)
     .maybeSingle();
 
-  const product = data ?? {
+  const fallback: Product & {
+    ingredients?: string[];
+    skin_type?: string[];
+    concerns?: string[];
+    how_to_use?: string;
+    brand?: string;
+    tokopedia_url?: string | null;
+    shopee_url?: string | null;
+  } = {
     id,
     name: "Product",
     price: 0,
-    description: "",
+    image: "",
     rating: 0,
-    brand: "",
-    ingredients: [] as string[],
-    skin_type: [] as string[],
-    how_to_use: "",
+    skinType: "",
+    keyIngredients: [],
+    benefits: [],
     size: "",
-    image: undefined as string | undefined,
-    concerns: [] as string[],
     category: "",
-    tokopedia_url: null as string | null,
-    shopee_url: null as string | null,
+    category_id: 0,
+    product_type_id: 0,
+    usages: 0,
+    ingredients: [],
+    skin_type: [],
+    concerns: [],
+    how_to_use: "",
+    brand: "",
+    tokopedia_url: null,
+    shopee_url: null,
   };
+
+  const product: Product & {
+    description?: string;
+    ingredients?: string[];
+    skin_type?: string[];
+    concerns?: string[];
+    how_to_use?: string;
+    brand?: string;
+    tokopedia_url?: string | null;
+    shopee_url?: string | null;
+  } = data
+    ? {
+        id: String(data.id),
+        name: data.name ?? "Product",
+        price: Number(data.price) || 0,
+        image: data.image ?? "",
+        rating: Number(data.rating ?? 0) || 0,
+        skinType: String(data.skinType ?? data.skin_type ?? ""),
+        keyIngredients: Array.isArray(data.keyIngredients)
+          ? data.keyIngredients
+          : Array.isArray(data.ingredients)
+            ? data.ingredients
+            : [],
+        benefits: Array.isArray(data.benefits)
+          ? data.benefits
+          : Array.isArray(data.concerns)
+            ? data.concerns
+            : [],
+        size: data.size ?? "",
+        category: data.category ?? "",
+        category_id: Number(data.category_id) || 0,
+        product_type_id: Number(data.product_type_id) || 0,
+        usages: Number(data.usages) || 0,
+        description: data.description ?? "",
+        ingredients: Array.isArray(data.ingredients) ? data.ingredients : [],
+        skin_type: Array.isArray(data.skin_type) ? data.skin_type : [],
+        concerns: Array.isArray(data.concerns) ? data.concerns : [],
+        how_to_use: data.how_to_use ?? "",
+        brand: data.brand ?? "",
+        tokopedia_url: data.tokopedia_url ?? null,
+        shopee_url: data.shopee_url ?? null,
+      }
+    : fallback;
 
   const ingredients: string[] = Array.isArray(product.ingredients) ? product.ingredients : [];
   const skinTypeText = Array.isArray(product.skin_type) ? product.skin_type.join(", ") : String(product.skin_type ?? "All");
@@ -92,20 +156,15 @@ export default async function ProductDetailPage({ params }: Params) {
           </div>
         </div>
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
-          <Card className="p-6">
+          <Card className="p-6 space-y-4">
             <div className="text-lg font-semibold text-brand-dark">Write a review</div>
-            <form action={addReview} className="mt-4 space-y-3">
-              <input type="hidden" name="productId" value={product.id} />
-              <div>
-                <label className="block text-sm text-brand-light">Rating</label>
-                <input type="number" name="rating" min={1} max={5} defaultValue={5} className="mt-1 w-24 rounded-2xl border border-neutral-200 px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm text-brand-light">Comment</label>
-                <textarea name="comment" className="mt-1 w-full rounded-2xl border border-neutral-200 px-3 py-2 text-sm" rows={3} />
-              </div>
-              <Button type="submit">Submit review</Button>
-            </form>
+            <ReviewForm productId={product.id} userId={user?.id} />
+          </Card>
+          <Card className="p-6 space-y-4 lg:col-span-2">
+            <div className="text-lg font-semibold text-brand-dark">Customer Reviews</div>
+            <Suspense fallback={<div className="text-sm text-brand-light">Loading reviews…</div>}>
+              <ReviewList productId={product.id} />
+            </Suspense>
           </Card>
         </div>
       </div>
