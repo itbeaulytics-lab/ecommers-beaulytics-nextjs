@@ -44,7 +44,12 @@ export default function ProductCard({ product }: Props) {
         )}
       </Link>
       <div className="p-5">
-        <Link href={`/products/${product.id}`} className="block text-base font-semibold text-brand-dark leading-tight hover:text-brand-primary transition-colors">
+        {product.category && (
+          <div className="mb-1 text-xs font-medium text-brand-primary uppercase tracking-wider">
+            {product.category}
+          </div>
+        )}
+        <Link href={`/products/${product.id}`} className="block text-base font-semibold text-brand-dark leading-tight hover:text-brand-primary transition-colors truncate" title={product.name}>
           {product.name}
         </Link>
         <div className="mt-2 flex items-center justify-between">

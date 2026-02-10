@@ -70,12 +70,21 @@ export default async function ReviewList({ productId }: { productId: string }) {
       });
     }
   }
+  const { data: { user: currentUser } } = await supabase.auth.getUser();
 
   return (
     <div className="space-y-4">
       {reviews.map((r) => {
-        const user = usersMap[r.user_id];
-        const name = user?.full_name || maskName(user?.email) || "User";
+        let name = "User";
+
+        if (currentUser && r.user_id === currentUser.id) {
+          const meta = currentUser.user_metadata;
+          name = meta.full_name || meta.name || currentUser.email || "User";
+        } else {
+          const user = usersMap[r.user_id];
+          name = user?.full_name || maskName(user?.email) || "User";
+        }
+
         const ratingVal = Number(r.rating || 0);
         const date = new Date(r.created_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
         return (

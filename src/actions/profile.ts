@@ -8,56 +8,33 @@ export async function updateProfile(formData: FormData) {
   const supabase = await getServerSupabaseRSC();
   const { data: userRes } = await supabase.auth.getUser();
   const user = userRes?.user;
-  if (!user) return;
-  await supabase.from("users").upsert({ id: user.id, full_name, avatar_url });
-  revalidatePath("/dashboard");
-}
-
-export async function syncProfile() {
-  const supabase = await getServerSupabaseRSC();
-  const { data: userRes } = await supabase.auth.getUser();
-  const user = userRes?.user;
-
   if (!user) {
-    console.log("No user found in syncProfile");
+    console.log("updateProfile - No user found");
     return;
   }
 
-  // DEBUGGING: Check products table visibility
-  const { count, error: productsError } = await supabase.from("products").select("*", { count: "exact", head: true });
-  console.log("SyncProfile - Products Check:", { count, error: productsError });
+  console.log("updateProfile - Updating:", { id: user.id, full_name, avatar_url });
 
-  const meta = user.user_metadata;
-  console.log("SyncProfile - User Metadata:", meta);
+  // 1. Update Auth Metadata (Backup/Primary for Dashboard)
+  const { error: authError } = await supabase.auth.updateUser({
+    data: { full_name, avatar_url }
+  });
 
-  const full_name = meta.full_name || meta.name || "";
-  const avatar_url = meta.avatar_url || meta.picture || "";
+  if (authError) {
+    console.error("updateProfile - Auth Update Error:", authError);
+  }
 
-  console.log("SyncProfile - Extracted:", { full_name, avatar_url });
-
-  /*
-   * DEBUGGING: Check if we can read the user first.
-   */
-  const { data: existingUser, error: selectError } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  console.log("SyncProfile - Existing User Check:", { found: !!existingUser, selectError: selectError ? JSON.stringify(selectError) : null });
-
-  const { data, error } = await supabase.from("users").upsert({
+  // 2. Try to update public.users table (Best Practice for Relations)
+  const { error } = await supabase.from("users").upsert({
     id: user.id,
     full_name,
     avatar_url
-  }).select();
+  });
 
   if (error) {
-    console.log("SyncProfile - Upsert FAILED");
-    // console.dir is better for Error objects sometimes
-    console.dir(error, { depth: null });
+    console.error("updateProfile - Table Update Error (Public table might be missing):", error);
   } else {
-    console.log("SyncProfile - Upsert SUCCEEDED", data);
+    console.log("updateProfile - Table Update Success");
   }
 
   revalidatePath("/dashboard");
