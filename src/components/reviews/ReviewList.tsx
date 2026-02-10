@@ -48,7 +48,7 @@ export default async function ReviewList({ productId }: { productId: string }) {
 
   // Fetch users manually since the FK join might be missing or broken
   const userIds = Array.from(new Set(reviews.map((r) => r.user_id).filter(Boolean)));
-  let usersMap: Record<string, { full_name?: string | null; avatar_url?: string | null }> = {};
+  const usersMap: Record<string, { full_name?: string | null; avatar_url?: string | null }> = {};
 
   if (userIds.length > 0) {
     const { data: usersData } = await supabase

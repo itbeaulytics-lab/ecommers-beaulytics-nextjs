@@ -5,11 +5,12 @@ import Button from "@/components/ui/Button";
 import AuthCard from "@/components/auth/AuthCard";
 import { safeDecode } from "@/lib/utils";
 
-type ForgotPageProps = { searchParams: { error?: string; info?: string } };
+type ForgotPageProps = { searchParams: Promise<{ error?: string; info?: string }> };
 
-export default function ForgotPage({ searchParams }: ForgotPageProps) {
-  const errorMsg = safeDecode(searchParams?.error);
-  const infoMsg = safeDecode(searchParams?.info);
+export default async function ForgotPage({ searchParams }: ForgotPageProps) {
+  const params = await searchParams;
+  const errorMsg = safeDecode(params?.error);
+  const infoMsg = safeDecode(params?.info);
 
   return (
     <AuthCard title="Forgot Password">
