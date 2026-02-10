@@ -138,33 +138,42 @@ export default async function ProductDetailPage({ params }: Params) {
               )}
             </div>
 
-            <div className="mt-10 flex flex-col sm:flex-row items-center gap-4 max-w-2xl">
-              <form action={addToCart}>
+            {/* Action Buttons - Fixed Bottom on Mobile */}
+            <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white/80 backdrop-blur-md border-t border-neutral-100 flex items-center gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] sm:static sm:z-auto sm:p-0 sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:shadow-none sm:mt-8 sm:flex-row sm:w-full sm:max-w-lg">
+              <form action={addToCart} className="flex-none">
                 <input type="hidden" name="productId" value={product.id} />
                 <input type="hidden" name="qty" value={1} />
-                <Button type="submit" className="h-20 w-20 rounded-full p-0 flex items-center justify-center bg-brand-primary text-white shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300" aria-label="Add to cart">
-                  <CartIcon className="h-10 w-10" />
+                <Button
+                  type="submit"
+                  className="h-12 w-12 rounded-full p-0 flex items-center justify-center bg-brand-primary text-white shadow-md active:scale-95 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 sm:h-20 sm:w-20"
+                  aria-label="Add to cart"
+                >
+                  <CartIcon className="h-8 w-8 sm:h-10 sm:w-10" />
                 </Button>
               </form>
 
-              <a
-                href={product.tokopedia_url || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center rounded-full px-6 py-4 text-sm font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#42b549] active:scale-95 text-white shadow-sm hover:shadow-md hover:-translate-y-0.5 bg-[#42b549] hover:bg-[#3ca341] flex-1 min-w-[140px]"
-              >
-                Tokopedia
-              </a>
+              <div className="flex flex-1 gap-3 sm:flex-none sm:gap-4">
+                <a
+                  href={product.tokopedia_url || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 inline-flex items-center justify-center rounded-full h-12 text-sm font-semibold text-white transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#42b549] active:scale-95 shadow-sm hover:shadow-md hover:-translate-y-0.5 bg-[#42b549] hover:bg-[#3ca341] sm:flex-none sm:h-14 sm:px-8 sm:min-w-[140px]"
+                >
+                  Tokopedia
+                </a>
 
-              <a
-                href={product.shopee_url || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center rounded-full px-6 py-4 text-sm font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ee4d2d] active:scale-95 text-white shadow-sm hover:shadow-md hover:-translate-y-0.5 bg-[#ee4d2d] hover:bg-[#d74425] flex-1 min-w-[140px]"
-              >
-                Shopee
-              </a>
+                <a
+                  href={product.shopee_url || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 inline-flex items-center justify-center rounded-full h-12 text-sm font-semibold text-white transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ee4d2d] active:scale-95 shadow-sm hover:shadow-md hover:-translate-y-0.5 bg-[#ee4d2d] hover:bg-[#d74425] sm:flex-none sm:h-14 sm:px-8 sm:min-w-[140px]"
+                >
+                  Shopee
+                </a>
+              </div>
             </div>
+            {/* Spacer for fixed bottom bar on mobile */}
+            <div className="h-24 sm:hidden"></div>
           </div>
         </div>
 
