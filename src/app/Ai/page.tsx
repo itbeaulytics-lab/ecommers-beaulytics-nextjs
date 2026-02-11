@@ -3,6 +3,7 @@
 import { useSkinChat } from "@/hooks/useSkinChat";
 import ChatBubble from "@/components/chat/ChatBubble";
 import ChatInput from "@/components/chat/ChatInput";
+import Image from "next/image";
 
 const starterPrompts = [
   "Kulitku sering jerawatan dan berminyak, skincare apa yang cocok?",
@@ -28,8 +29,13 @@ export default function AiPage() {
       <header className="shrink-0 z-40 w-full border-b border-gray-200 bg-white/80 px-6 py-4 backdrop-blur-md">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black text-white">
-              <span className="font-bold">AI</span>
+            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-gray-100">
+              <Image
+                src="/logo.webp"
+                alt="Beaulytics AI"
+                fill
+                className="object-cover"
+              />
             </div>
             <div>
               <h1 className="text-sm font-bold text-gray-900">Beaulytics AI</h1>
