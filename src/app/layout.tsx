@@ -18,8 +18,67 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Beaulytics",
-  description: "Beaulytics",
+  title: {
+    default: "Beaulytics: Discover Skincare Products & Routines",
+    template: "%s | Beaulytics",
+  },
+  description:
+    "Beaulytics analyzes your skin type, ingredient preferences, and cosmetic needs to recommend the best products for your routine. Compare ingredients and find your perfect match instantly.",
+  keywords: [
+    "Skincare",
+    "Skincare Routine",
+    "Ingredient Analysis",
+    "Cosmetic Ingredients",
+    "Skin Type",
+    "Oily Skin",
+    "Dry Skin",
+    "Sensitive Skin",
+    "Acne Prone Skin",
+    "Product Comparison",
+    "Beauty Analysis",
+    "Skincare Safe",
+    "Non-comedogenic",
+    "Fragrance Free",
+    "Clean Beauty",
+    "Skin Health",
+    "Dermatology",
+    "Cosmetic Chemistry",
+  ],
+  authors: [{ name: "Beaulytics Team" }],
+  creator: "Beaulytics",
+  publisher: "Beaulytics",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  openGraph: {
+    title: "Beaulytics: Discover Skincare Products & Routines",
+    description:
+      "Beaulytics analyzes your skin type, ingredient preferences, and cosmetic needs to recommend the best products for your routine.",
+    url: "https://www.beaulytics.com",
+    siteName: "Beaulytics",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Beaulytics: Discover Skincare Products & Routines",
+    description:
+      "Beaulytics analyzes your skin type, ingredient preferences, and cosmetic needs to recommend the best products for your routine.",
+    creator: "@beaulytics",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default async function RootLayout({
