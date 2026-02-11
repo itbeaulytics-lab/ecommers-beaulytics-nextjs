@@ -28,7 +28,7 @@ export async function proxy(req: NextRequest) {
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com",
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com",
+    "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://down-id.img.susercontent.com",
     "connect-src 'self' https://*.supabase.co https://*.supabase.in",
   ].join("; ");
   res.headers.set("X-Frame-Options", "DENY");

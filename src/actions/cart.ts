@@ -49,9 +49,6 @@ export async function addToCart(formData: FormData) {
 
   console.log("Current User:", user?.id || "Guest");
 
-  // Refactored: We allow guest users now (user might be undefined)
-  // if (!user) return; 
-
   const cartId = await getOrCreateCartId(supabase, user?.id);
 
   const { data: existing } = await supabase

@@ -47,9 +47,11 @@ export default async function Home() {
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-brand-dark">Produk Unggulan</h2>
               <p className="mt-2 text-sm text-brand-light">Koleksi istimewa pilihan kami untuk Anda.</p>
             </div>
-            <div className="grid gap-6 grid-cols-2 md:grid-cols-4">
+            <div className="flex overflow-x-auto pb-4 gap-4 snap-x md:grid md:grid-cols-4 md:gap-6 md:pb-0 scrollbar-hide">
               {featuredItems.map((p: any) => (
-                <ProductCard key={p.id} product={p} />
+                <div key={p.id} className="w-[200px] md:w-auto snap-center shrink-0">
+                  <ProductCard product={p} />
+                </div>
               ))}
             </div>
           </div>
@@ -64,9 +66,11 @@ export default async function Home() {
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-brand-dark">Produk unggulan</h2>
             <p className="mt-2 text-sm text-brand-light">Pilihan populer dengan rating tinggi.</p>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="flex overflow-x-auto pb-4 gap-4 snap-x md:grid md:grid-cols-4 md:gap-6 md:pb-0 scrollbar-hide">
             {bestSellerItems.map((p) => (
-              <ProductCard key={p.id} product={{ id: p.id, name: p.name, price: p.price, image: p.image, rating: p.rating }} />
+              <div key={p.id} className="w-[200px] md:w-auto snap-center shrink-0">
+                <ProductCard product={{ id: p.id, name: p.name, price: p.price, image: p.image, rating: p.rating }} />
+              </div>
             ))}
           </div>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -155,11 +156,10 @@ function Bubble({ message }: { message: ChatMessage }) {
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} w-full`}>
       <div
-        className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
-          isUser
-            ? "bg-brand-primary text-brand-dark rounded-br-sm"
-            : "bg-white/90 text-brand-dark border border-brand-primary/10 rounded-bl-sm"
-        }`}
+        className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${isUser
+          ? "bg-brand-primary text-brand-dark rounded-br-sm"
+          : "bg-white/90 text-brand-dark border border-brand-primary/10 rounded-bl-sm"
+          }`}
         dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
       />
     </div>
@@ -191,9 +191,18 @@ export default function AiPage() {
     setInput("");
     setLoading(true);
     try {
+      const supabase = getSupabaseClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const headers: HeadersInit = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const res = await fetch("/api/skin-ai", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ mode: "chat", messages: nextMessages }),
       });
       if (!res.ok) {
@@ -202,7 +211,7 @@ export default function AiPage() {
           const err = await res.json();
           if (err?.error) reason = `${err.error}${err?.status ? ` (${err.status})` : ""}`;
           if (err?.detail) reason += ` — ${String(err.detail).slice(0, 200)}`;
-        } catch {}
+        } catch { }
         throw new Error(reason);
       }
       const data = await res.json();
@@ -223,7 +232,7 @@ export default function AiPage() {
         ...prev,
         {
           role: "assistant",
-          content: `Aku mengalami gangguan saat terhubung. Pastikan koneksi stabil dan coba lagi sebentar ya.${detail}`,
+          content: `Aku mengalami gangguan saat terhubung. Pastikan kamu sudah login, koneksi stabil dan coba lagi sebentar ya.${detail}`,
         },
       ]);
     } finally {

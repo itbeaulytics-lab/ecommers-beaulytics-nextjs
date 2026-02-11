@@ -1,4 +1,5 @@
 import Button from "@/components/ui/Button";
+import Image from "next/image";
 import { Sparkles } from "lucide-react";
 
 export default function Hero() {
@@ -7,31 +8,42 @@ export default function Hero() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-10 md:grid-cols-2">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-brand-secondary px-3 py-1 text-xs font-medium text-brand-dark ring-1 ring-black/5">New • Honey Glow</div>
-            <h1 className="mt-4 text-4xl sm:text-5xl font-semibold tracking-tight text-brand-dark">Skincare modern untuk glow lembut</h1>
-            <p className="mt-4 text-base sm:text-lg text-brand-light">Formula minimalis, tekstur plush, dan packaging pastel terinspirasi ritual luxury.</p>
+            <div className="inline-flex items-center gap-2 rounded-full bg-brand-secondary px-3 py-1 text-xs font-medium text-brand-dark ring-1 ring-black/5">New • Smart Beauty Platform</div>
+            <h1 className="mt-4 text-4xl sm:text-5xl font-semibold tracking-tight text-brand-dark">Temukan Jodoh Skincare-mu Tanpa Bingung</h1>
+            <p className="mt-4 text-base sm:text-lg text-brand-light">Platform cerdas dengan fitur <span className="font-semibold text-brand-primary-hover">Compare Product</span> dan <span className="font-semibold text-brand-primary-hover">AI Chat</span> untuk membantumu memahami jenis kulit dan menemukan produk yang paling tepat.</p>
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <Button href="/products">Shop Now</Button>
               <Button variant="ai" href="/Ai">
                 <Sparkles className="mr-2 h-4 w-4" />
-                Konsultasi
+                AI Chat
               </Button>
             </div>
           </div>
           <div className="relative">
             <div className="grid grid-cols-2 gap-4">
-              <div className="row-span-2 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
-                <div className="aspect-[2/3] rounded-2xl bg-white shadow-inner" />
-                <div className="mt-4 h-2 w-24 rounded-full bg-brand-primary/60" />
-                <div className="mt-2 h-2 w-16 rounded-full bg-brand-primary/30" />
+              <div className="row-span-2 relative rounded-2xl overflow-hidden bg-white shadow-sm ring-1 ring-black/5 aspect-[2/3]">
+                <Image
+                  src="/1.webp"
+                  alt="Skin Analysis Dashboard"
+                  fill
+                  className="object-cover"
+                />
               </div>
-              <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
-                <div className="aspect-square rounded-2xl bg-white shadow-inner" />
-                <div className="mt-4 h-2 w-20 rounded-full bg-brand-primary/60" />
+              <div className="relative rounded-2xl overflow-hidden bg-white shadow-sm ring-1 ring-black/5 aspect-square">
+                <Image
+                  src="/2.webp"
+                  alt="Product Comparison"
+                  fill
+                  className="object-cover scale-100"
+                />
               </div>
-              <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
-                <div className="aspect-square rounded-2xl bg-white shadow-inner" />
-                <div className="mt-4 h-2 w-16 rounded-full bg-brand-primary/40" />
+              <div className="relative rounded-2xl overflow-hidden bg-white shadow-sm ring-1 ring-black/5 aspect-square">
+                <Image
+                  src="/3.webp"
+                  alt="AI Chat Consultant"
+                  fill
+                  className="object-cover"
+                />
               </div>
             </div>
             <div className="absolute -left-4 -top-4 hidden h-28 w-28 rounded-full bg-brand-primary/40 blur-xl sm:block" />

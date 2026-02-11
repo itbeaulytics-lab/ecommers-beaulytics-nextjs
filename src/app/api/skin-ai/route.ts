@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
-
-// Simple in-memory rate limit map: key -> { count, last }
-const rateLimitMap = new Map<string, { count: number; last: number }>();
-const WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const MAX_REQUESTS = 5; // per window
-const MIN_INTERVAL_MS = 10 * 1000; // also enforce 10s spacing
+import { Redis } from "@upstash/redis";
+import { Ratelimit } from "@upstash/ratelimit";
+import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
 
 const MODEL = process.env.NEXT_GROQ_MODEL || "openai/gpt-oss-120b";
 const CHAT_MAX_TOKENS = Number(process.env.NEXT_GROQ_MAX_TOKENS || 2048);
@@ -25,33 +23,72 @@ const CHAT_PROMPT =
   "Do NOT answer off-topic questions. " +
   "Give routine suggestions, ingredient tips, and safety notes conversationally.";
 
+// Schema Validation
+const requestSchema = z.object({
+  messages: z.array(
+    z.object({
+      role: z.enum(["user", "assistant", "system"]),
+      content: z.string(),
+    })
+  ),
+  mode: z.enum(["chat", "analysis"]).optional(),
+});
+
 export async function POST(req: Request) {
   try {
+    // 1. Authentication (Supabase)
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return NextResponse.json({ error: "Missing Authorization header" }, { status: 401 });
+    }
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    // Extract token "Bearer <token>"
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 2. Input Validation (Zod)
+    const body = await req.json();
+    const validation = requestSchema.safeParse(body);
+
+    if (!validation.success) {
+      return NextResponse.json({ error: "Invalid request body", details: validation.error.format() }, { status: 400 });
+    }
+
+    const { messages, mode } = validation.data;
+
+    // 3. Rate Limiting (Upstash)
+    const redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    });
+
+    const ratelimit = new Ratelimit({
+      redis: redis,
+      limiter: Ratelimit.slidingWindow(5, "1 h"),
+      analytics: true,
+    });
+
+    // Use IP address as identifier
+    const identifier = req.headers.get("x-forwarded-for") || req.headers.get("cf-connecting-ip") || "anon";
+    const { success } = await ratelimit.limit(identifier);
+
+    if (!success) {
+      return NextResponse.json({ error: "Too Many Requests" }, { status: 429 });
+    }
+
+    // 4. Existing Logic
     const apiKey = process.env.NEXT_GROQ_API || process.env.GROQ_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: "Missing GROQ API key" }, { status: 500 });
-    }
-
-    const body = await req.json();
-    const mode = body?.mode === "analysis" ? "analysis" : "chat";
-    const messages = Array.isArray(body?.messages) ? body.messages : [];
-
-    // Rate limit by IP (fallback) or provided userId
-    const ip = req.headers.get("x-forwarded-for") || req.headers.get("cf-connecting-ip") || "anon";
-    const userId = typeof body?.userId === "string" && body.userId.length <= 128 ? body.userId : "";
-    const key = userId || ip;
-    const now = Date.now();
-    const entry = rateLimitMap.get(key);
-    if (entry) {
-      const withinWindow = now - entry.last < WINDOW_MS;
-      const tooSoon = now - entry.last < MIN_INTERVAL_MS;
-      const count = withinWindow ? entry.count + 1 : 1;
-      if (tooSoon || count > MAX_REQUESTS) {
-        return NextResponse.json({ error: "Too Many Requests" }, { status: 429 });
-      }
-      rateLimitMap.set(key, { count, last: now });
-    } else {
-      rateLimitMap.set(key, { count: 1, last: now });
     }
 
     const isAnalysis = mode === "analysis";
@@ -62,21 +99,22 @@ export async function POST(req: Request) {
     const chatMessages = [
       { role: "system", content: systemPrompt },
       ...messages.map((m: any) => ({
-        role: m?.role === "user" ? "user" : "assistant",
-        content: String(m?.content ?? ""),
+        role: m.role,
+        content: m.content,
       })),
     ];
 
     const groq = new Groq({ apiKey });
     const completion = await groq.chat.completions.create({
       model: MODEL,
-      messages: chatMessages,
+      messages: chatMessages as any,
       temperature,
       max_tokens: maxTokens,
     });
 
     const content = completion?.choices?.[0]?.message?.content ?? "";
     return NextResponse.json({ content });
+
   } catch (error: any) {
     console.error("Groq route error", error);
     const status = error?.status || error?.response?.status;
