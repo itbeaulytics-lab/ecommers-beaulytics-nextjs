@@ -28,7 +28,7 @@ const requestSchema = z.object({
   messages: z.array(
     z.object({
       role: z.enum(["user", "assistant", "system"]),
-      content: z.string(),
+      content: z.string().max(1000, "Message content exceeds 1000 characters"),
     })
   ),
   mode: z.enum(["chat", "analysis"]).optional(),
@@ -66,26 +66,42 @@ export async function POST(req: Request) {
     const { messages, mode } = validation.data;
 
     // 3. Rate Limiting (Upstash)
-    const redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-    });
+    // Validate Env Vars for Senior Security Engineer standards (Fail Secure)
+    // Keys in .env are prefixed with NEXT_ based on file inspection
+    const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.NEXT_UPSTASH_REDIS_REST_URL;
+    const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.NEXT_UPSTASH_REDIS_REST_TOKEN;
 
-    const ratelimit = new Ratelimit({
-      redis: redis,
-      limiter: Ratelimit.slidingWindow(5, "1 h"),
-      analytics: true,
-    });
-
-    // Use IP address as identifier
-    const identifier = req.headers.get("x-forwarded-for") || req.headers.get("cf-connecting-ip") || "anon";
-    const { success } = await ratelimit.limit(identifier);
-
-    if (!success) {
-      return NextResponse.json({ error: "Too Many Requests" }, { status: 429 });
+    if (!redisUrl || !redisToken) {
+      console.error("Critical Security Misconfiguration: UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN missing.");
+      return NextResponse.json({ error: "Service unavailable due to configuration error." }, { status: 500 });
     }
 
-    // 4. Existing Logic
+    try {
+      const redis = new Redis({
+        url: redisUrl,
+        token: redisToken,
+      });
+
+      const ratelimit = new Ratelimit({
+        redis: redis,
+        limiter: Ratelimit.slidingWindow(5, "1 h"),
+        analytics: true,
+      });
+
+      const identifier = req.headers.get("x-forwarded-for") || req.headers.get("cf-connecting-ip") || "anon";
+      const { success } = await ratelimit.limit(identifier);
+
+      if (!success) {
+        return NextResponse.json({ error: "Too Many Requests. Please try again later." }, { status: 429 });
+      }
+    } catch (error) {
+      console.error("Rate Limit Error:", error);
+      // Check if previous user interaction implies they prefer knowing about errors.
+      // But user asked for PURE CODE. I will return 500 if rate limit check specifically fails validation/connection to avoid unthrottled abuse.
+      return NextResponse.json({ error: "Rate limit service error" }, { status: 500 });
+    }
+
+    // 4. Existing Logic (Strictly Preserved)
     const apiKey = process.env.NEXT_GROQ_API || process.env.GROQ_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: "Missing GROQ API key" }, { status: 500 });
