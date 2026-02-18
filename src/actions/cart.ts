@@ -2,9 +2,14 @@
 import { getServerSupabase } from "@/lib/supabaseServer";
 import { revalidatePath } from "next/cache";
 
+import { cookies } from "next/headers";
+
 // Helper: Get existing Cart ID OR Create new Cart
 async function getOrCreateCartId(supabase: any, userId?: string | null): Promise<string> {
-  // 1. If user is logged in, try to find existing cart
+  const cookieStore = await cookies();
+  const cartIdCookie = cookieStore.get("cartId")?.value;
+
+  // 1. If user is logged in, try to find existing cart for this user
   if (userId) {
     const { data: cart } = await supabase
       .from("carts")
@@ -15,8 +20,18 @@ async function getOrCreateCartId(supabase: any, userId?: string | null): Promise
     if (cart) return cart.id;
   }
 
-  // 2. Create new cart
-  // If userId is undefined/null, we pass null or just omit it (Supabase handles nullable)
+  // 2. If guest (no userId) and has a cart cookie, verify it exists
+  if (!userId && cartIdCookie) {
+    const { data: cart } = await supabase
+      .from("carts")
+      .select("id")
+      .eq("id", cartIdCookie)
+      .maybeSingle();
+
+    if (cart) return cart.id;
+  }
+
+  // 3. Create new cart
   const payload = userId ? { user_id: userId } : { user_id: null };
 
   const { data: created, error } = await supabase
@@ -32,6 +47,17 @@ async function getOrCreateCartId(supabase: any, userId?: string | null): Promise
 
   if (!created) {
     throw new Error("Cart creation failed: No data returned.");
+  }
+
+  // 4. Save cookie for guest users
+  if (!userId) {
+    cookieStore.set("cartId", created.id, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
   }
 
   return created.id;

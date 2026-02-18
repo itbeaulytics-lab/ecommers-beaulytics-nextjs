@@ -91,15 +91,14 @@ export default async function ProductDetailPage({ params }: Params) {
             )}
           </div>
 
+          <div className="mt-4 flex items-center justify-between">
+            <p className="text-2xl font-semibold text-brand-dark">{formatRp(Number(product.price) || 0)}</p>
+            {hasRating ? <Rating value={ratingVal} /> : null}
+          </div>
+
           {/* Details Section */}
           <div className="mt-10 lg:mt-0">
-            <h1 className="text-3xl font-bold tracking-tight text-brand-dark sm:text-4xl">{product.name}</h1>
-
-            <div className="mt-4 flex items-center justify-between">
-              <p className="text-2xl font-semibold text-brand-dark">{formatRp(Number(product.price) || 0)}</p>
-              {hasRating ? <Rating value={ratingVal} /> : null}
-            </div>
-
+            <h5 className="text-2xl font-bold tracking-tight text-brand-dark sm:text-4xl">{product.name}</h5>
             <div className="mt-6 space-y-6">
               <p className="text-base text-brand-light leading-relaxed">{product.description}</p>
 
