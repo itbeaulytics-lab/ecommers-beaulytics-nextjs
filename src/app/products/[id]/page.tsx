@@ -9,8 +9,50 @@ import AddToCartButton from "@/components/AddToCartButton";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
 import type { Product } from "@/types/product";
+import type { Metadata, ResolvingMetadata } from "next";
 
 type Params = { params: Promise<{ id: string }> };
+
+export async function generateMetadata(
+  { params }: Params,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { id } = await params;
+
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(id)) {
+    return {
+      title: "Product Not Found - Beaulytics",
+    };
+  }
+
+  const supabase = await getServerSupabase();
+  const { data: product } = await supabase
+    .from("products")
+    .select("name, description, category, ingredients")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!product) {
+    return {
+      title: "Product Not Found - Beaulytics",
+    };
+  }
+
+  // Use description or fallback to a generated description
+  const description =
+    product.description ||
+    `Buy ${product.name}. Category: ${product.category}. Key ingredients: ${Array.isArray(product.ingredients)
+      ? product.ingredients.slice(0, 3).join(", ")
+      : "various"
+    }.`;
+
+  return {
+    title: `${product.name} - Beli di Beaulytics`,
+    description: description.slice(0, 160), // SEO best practice: limit description length
+  };
+}
 
 export default async function ProductDetailPage({ params }: Params) {
   const { id } = await params;
