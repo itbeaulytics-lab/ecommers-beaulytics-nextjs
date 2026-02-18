@@ -22,6 +22,18 @@ export default function SkinProfilePanel({ user }: SkinProfilePanelProps) {
   ) as string[];
 
   if (!tags.length) {
+    if (summaryText) {
+      return (
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-brand-dark">Skin Profile</h2>
+            <span className="text-[10px] font-medium uppercase tracking-wider text-brand-primary">AI Analysis</span>
+          </div>
+          <p className="mt-4 text-sm text-brand-dark">{summaryText}</p>
+        </Card>
+      );
+    }
+
     return (
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-brand-dark">Skin Profile</h2>

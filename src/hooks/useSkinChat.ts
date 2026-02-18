@@ -9,6 +9,7 @@ export type ChatContentPart = {
 export type ChatMessage = {
     role: "user" | "assistant";
     content: string | ChatContentPart[];
+    action?: "login" | null;
 };
 
 export function useSkinChat() {
@@ -91,30 +92,38 @@ export function useSkinChat() {
             } = await supabase.auth.getSession();
             const token = session?.access_token;
 
-            const headers: HeadersInit = { "Content-Type": "application/json" };
-            if (token) {
-                headers["Authorization"] = `Bearer ${token}`;
+            // 1. Check valid session before Fetching
+            if (!session || !token) {
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        role: "assistant",
+                        content:
+                            "Untuk menggunakan fitur AI Chat, silakan login atau register terlebih dahulu ya!",
+                        action: "login",
+                    },
+                ]);
+                setLoading(false);
+                return;
             }
 
+            const headers: HeadersInit = { "Content-Type": "application/json" };
+            headers["Authorization"] = `Bearer ${token}`;
+
             // PREPARE PAYLOAD WITH CONTEXT INJECTION
-            // We clone the messages to verify/inject context without showing it in UI
-            const payloadMessages = JSON.parse(JSON.stringify(nextMessages)); // Deep clone
+            const payloadMessages = JSON.parse(JSON.stringify(nextMessages));
 
             if (analysisContext) {
-                // Inject into the VERY LAST message (the one being processed now)
-                // effectively giving specific context to this turn
                 const lastMsg = payloadMessages[payloadMessages.length - 1];
                 const contextString = `\n\n[SYSTEM CONTEXT: User has a previous Skin Diagnosis Report. Use this reference: ${analysisContext}]\n`;
 
                 if (typeof lastMsg.content === "string") {
                     lastMsg.content += contextString;
                 } else if (Array.isArray(lastMsg.content)) {
-                    // Find text part and append
                     const textPart = lastMsg.content.find((p: any) => p.type === "text");
                     if (textPart) {
                         textPart.text += contextString;
                     } else {
-                        // weird edge case, push new text part
                         lastMsg.content.push({ type: "text", text: contextString });
                     }
                 }
@@ -126,6 +135,11 @@ export function useSkinChat() {
                 body: JSON.stringify({ mode: "chat", messages: payloadMessages }),
             });
             if (!res.ok) {
+                // Handle 401 Unauthorized from Server
+                if (res.status === 401) {
+                    throw new Error("Missing Authorization header");
+                }
+
                 let reason = "Gagal menghubungi AI";
                 try {
                     const err = await res.json();
@@ -148,14 +162,29 @@ export function useSkinChat() {
             ]);
         } catch (error: any) {
             console.error(error);
-            const detail = error?.message ? ` (${error.message})` : "";
-            setMessages((prev) => [
-                ...prev,
-                {
-                    role: "assistant",
-                    content: `Aku mengalami gangguan saat terhubung. Pastikan kamu sudah login, koneksi stabil dan coba lagi sebentar ya.${detail}`,
-                },
-            ]);
+            const errorMessage = error?.message || "";
+
+            // Handle Auth Error specifically
+            if (errorMessage.includes("Missing Authorization") || errorMessage.includes("Unauthorized")) {
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        role: "assistant",
+                        content:
+                            "Sesi login kamu berakhir atau belum login. Silakan login kembali untuk melanjutkan chat.",
+                        action: "login",
+                    },
+                ]);
+            } else {
+                const detail = errorMessage ? ` (${errorMessage})` : "";
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        role: "assistant",
+                        content: `Aku mengalami gangguan saat terhubung. Pastikan internet stabil dan coba lagi ya.${detail}`,
+                    },
+                ]);
+            }
         } finally {
             setLoading(false);
         }

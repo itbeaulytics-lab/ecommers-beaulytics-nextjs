@@ -33,22 +33,30 @@ export async function saveSkinProfile(_prevState: { error?: string } | null, for
   }
 
   const { answers, aiSummary } = parsed.data;
-  const tags = aiSummary
+
+  // Clean up potential noise from AI response
+  const cleanSummary = aiSummary
+    .replace(/^(Medical Report|Analysis|Result|Detected Conditions):/i, "")
+    .replace(/\r\n/g, ",")
+    .replace(/\n/g, ",");
+
+  const tags = cleanSummary
     .split(",")
-    .map((tag) => tag.trim())
-    .filter((tag) => tag.length > 0);
+    .map((tag) => tag.trim().replace(/^[-*•]\s*/, "")) // Remove bullet points if any
+    .filter((tag) => tag.length > 2); // Filter out very short/empty tags
 
   const payload = {
     skin_profile: {
       answers,
-      summary: aiSummary,
+      summary: cleanSummary,
       updated_at: new Date().toISOString(),
     },
     skin_tags: tags,
-    skinshort: aiSummary,
+    skinshort: cleanSummary,
   };
 
-  const { error: updateError } = await supabase.auth.updateUser({ data: payload });
+  const { data: updatedUser, error: updateError } = await supabase.auth.updateUser({ data: payload });
+
   if (updateError) {
     return { error: updateError.message };
   }

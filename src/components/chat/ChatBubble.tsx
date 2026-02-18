@@ -49,6 +49,24 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
                         dangerouslySetInnerHTML={{ __html: formatContent(textContent) }}
                     />
                 )}
+
+                {/* ACTION BUTTONS (ex: Login Prompt) */}
+                {message.action === "login" && (
+                    <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                        <a
+                            href="/auth/login"
+                            className="inline-flex items-center justify-center rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-800"
+                        >
+                            Login Sekarang
+                        </a>
+                        <a
+                            href="/auth/register"
+                            className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 hover:text-black"
+                        >
+                            Daftar Akun
+                        </a>
+                    </div>
+                )}
             </div>
         </div>
     );

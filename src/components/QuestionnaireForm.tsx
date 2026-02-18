@@ -5,6 +5,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { QUESTIONS } from "@/lib/constants";
 import { saveSkinProfile } from "@/actions/questionnaire";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 
 type Question = (typeof QUESTIONS)[number];
 
@@ -54,15 +55,32 @@ export default function QuestionnaireForm({ user }: Props) {
   }
 
   async function fetchAiSummary() {
+    const supabase = getSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    if (!token) {
+      throw new Error("Sesi login berakhir/hilang. Silakan refresh atau login ulang.");
+    }
+
     const messages = [
       {
         role: "user",
-        content: QUESTIONS.map((q) => `${q.label}: ${answers[q.key] ?? ""}`).join("\n"),
+        content: QUESTIONS.map((q, index) => {
+          const answerText = answers[q.key] ?? "";
+          // Cari index jawaban di dalam array options untuk mendapatkan nomor opsinya (1-4)
+          const optionIndex = (q.options as readonly string[]).indexOf(answerText) + 1;
+
+          return `Q${index + 1}. ${q.label}\nSelected: Opt ${optionIndex} (${answerText})`;
+        }).join("\n\n"),
       },
     ];
     const res = await fetch("/api/skin-ai", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
       body: JSON.stringify({ mode: "analysis", messages }),
     });
     const json = await res.json();
