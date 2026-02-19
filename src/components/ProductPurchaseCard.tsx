@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { useCartStore } from "@/store/cartStore";
 import { addToCart } from "@/actions/cart";
+import { trackOutboundClick } from "@/actions/tracking";
 import { Loader2, Minus, Plus, X, Check, Copy } from "lucide-react";
 
 type Product = {
@@ -128,6 +129,11 @@ export default function ProductPurchaseCard({ product }: { product: Product }) {
         if (url) window.open(url, "_blank");
     };
 
+    const handleTrackClick = (platform: "shopee" | "tokopedia") => {
+        // Did not await to avoid blocking UI navigation
+        trackOutboundClick(product.id, platform);
+    };
+
     const subtotal = product.price * quantity;
 
     return (
@@ -192,6 +198,7 @@ export default function ProductPurchaseCard({ product }: { product: Product }) {
                             href={product.tokopedia_url}
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={() => handleTrackClick("tokopedia")}
                             className="flex items-center justify-center h-10 rounded-lg bg-[#42b549] text-white text-sm font-semibold hover:bg-[#3aa342] transition-colors"
                         >
                             Tokopedia
@@ -207,6 +214,7 @@ export default function ProductPurchaseCard({ product }: { product: Product }) {
                             href={product.shopee_url}
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={() => handleTrackClick("shopee")}
                             className="flex items-center justify-center h-10 rounded-lg bg-[#ee4d2d] text-white text-sm font-semibold hover:bg-[#d64126] transition-colors"
                         >
                             Shopee

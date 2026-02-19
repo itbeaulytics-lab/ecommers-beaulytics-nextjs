@@ -55,9 +55,7 @@ export default function ProductCard({ product }: Props) {
         {/* Rating & Sold */}
         <div className="flex items-center gap-1 text-xs text-neutral-500">
           <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-          <span>{product.rating?.toFixed(1) || "4.5"}</span>
-          {/* <span className="mx-0.5">•</span> */}
-          {/* <span>3rb+ terjual</span> */}
+          <span>{product.rating ? product.rating.toFixed(1) : "New"}</span>
         </div>
       </div>
     </Card>

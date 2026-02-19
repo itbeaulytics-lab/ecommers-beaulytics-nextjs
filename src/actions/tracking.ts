@@ -1,0 +1,43 @@
+"use server";
+
+import { getServerSupabaseRSC } from "@/lib/supabaseServerRSC";
+
+export async function trackOutboundClick(
+    productId: string,
+    platform: "shopee" | "tokopedia" | "other"
+) {
+    const supabase = await getServerSupabaseRSC();
+
+    try {
+        const { error } = await supabase.from("outbound_clicks").insert({
+            product_id: productId,
+            platform,
+        });
+
+        if (error) {
+            console.error("Error tracking outbound click:", error);
+            return { success: false, error: error.message };
+        }
+
+        return { success: true };
+    } catch (err) {
+        console.error("Unexpected error tracking outbound click:", err);
+        return { success: false, error: "Internal Server Error" };
+    }
+}
+
+export async function getOutboundClickCount(productId: string) {
+    const supabase = await getServerSupabaseRSC();
+    const { count, error } = await supabase
+        .from("outbound_clicks")
+        .select("*", { count: "exact", head: true })
+        .eq("product_id", productId);
+
+    if (error) {
+        console.error("Error fetching outbound click count:", error);
+        return 0;
+    }
+
+    return count || 0;
+}
+

@@ -11,6 +11,8 @@ import MobileProductActionBar from "@/components/MobileProductActionBar";
 import MobileProductHeader from "@/components/MobileProductHeader";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewList from "@/components/reviews/ReviewList";
+import { getProductRatingSummary } from "@/actions/reviews";
+import { getOutboundClickCount } from "@/actions/tracking";
 import type { Product } from "@/types/product";
 import type { Metadata, ResolvingMetadata } from "next";
 
@@ -119,8 +121,11 @@ export default async function ProductDetailPage({ params }: Params) {
   function formatRp(n: number) {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
   }
-  const ratingVal = Number((product as any)?.rating);
-  const hasRating = Number.isFinite(ratingVal);
+
+  const { average: ratingAverage, count: reviewCount } = await getProductRatingSummary(id);
+  const clickCount = await getOutboundClickCount(id);
+  const ratingVal = reviewCount > 0 ? ratingAverage : 0;
+  const hasRating = reviewCount > 0;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -185,13 +190,18 @@ export default async function ProductDetailPage({ params }: Params) {
                 <h2 className="text-lg leading-snug text-brand-dark font-medium mb-2">{product.name}</h2>
 
                 <div className="flex items-center gap-4 text-sm mb-4">
-                  <span className="text-brand-dark font-medium">Terjual 100+</span>
+                  <span className="text-brand-dark font-medium">
+                    {clickCount > 0 ? `${clickCount} orang tertarik` : "New Product"}
+                  </span>
                   <div className="w-px h-3 bg-neutral-300"></div>
                   {hasRating && (
                     <div className="flex items-center gap-1 rounded-full border border-neutral-200 px-2 py-0.5">
                       <Rating value={ratingVal} />
-                      <span className="text-neutral-600 font-medium">({ratingVal.toFixed(1)})</span>
+                      <span className="text-neutral-600 font-medium">({ratingVal.toFixed(1)}) / {reviewCount} reviews</span>
                     </div>
+                  )}
+                  {!hasRating && (
+                    <div className="text-neutral-500 text-xs">No reviews yet</div>
                   )}
                 </div>
               </div>
@@ -256,19 +266,22 @@ export default async function ProductDetailPage({ params }: Params) {
               <div className="h-2 bg-neutral-100 w-full lg:hidden"></div>
               <hr className="hidden lg:block border-neutral-100 my-6" />
 
-              {/* Reviews Header Mobile */}
               <div className="px-4 py-4 lg:hidden">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-lg font-bold text-brand-dark">Ulasan Pembeli</h3>
-                  <Link href="#" className="text-brand-primary text-sm font-semibold">Lihat Semua</Link>
+                  {hasRating && <Link href="#" className="text-brand-primary text-sm font-semibold">Lihat Semua</Link>}
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold text-brand-dark">{hasRating ? ratingVal.toFixed(1) : "-"}</span>
-                  <div className="text-xs text-neutral-500">
-                    <p>/5.0</p>
-                    <p className="font-medium text-brand-dark">98% Puas</p>
+                {hasRating ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-brand-dark">{ratingVal.toFixed(1)}</span>
+                    <div className="text-xs text-neutral-500">
+                      <p>/5.0</p>
+                      <p className="font-medium text-brand-dark">{reviewCount} Ulasan</p>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="text-sm text-neutral-500 italic">Belum ada ulasan</div>
+                )}
               </div>
             </div>
 
@@ -301,7 +314,12 @@ export default async function ProductDetailPage({ params }: Params) {
           </div>
 
           {/* Mobile Reviews List (Visible) */}
-          <div className="lg:hidden px-4 pb-4">
+          <div className="lg:hidden px-4 pb-4 space-y-6">
+            <div className="bg-neutral-50 rounded-xl p-4 border border-neutral-100">
+              <h3 className="text-sm font-bold text-brand-dark mb-3">Tulis Ulasan</h3>
+              <ReviewForm productId={product.id} userId={user?.id} />
+            </div>
+
             <Suspense fallback={<div className="text-sm text-brand-light">Loading reviews…</div>}>
               <ReviewList productId={product.id} />
             </Suspense>

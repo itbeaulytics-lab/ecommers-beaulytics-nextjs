@@ -63,3 +63,27 @@ export async function submitReview(_prevState: any, formData: FormData) {
   revalidatePath("/products/[id]");
   return { success: true };
 }
+
+export async function getProductRatingSummary(productId: string) {
+  const supabase = await getServerSupabaseRSC();
+
+  const { data, error } = await supabase
+    .from("reviews")
+    .select("rating")
+    .eq("product_id", productId);
+
+  if (error) {
+    console.error("Error fetching rating summary:", error);
+    return { average: 0, count: 0 };
+  }
+
+  if (!data || data.length === 0) {
+    return { average: 0, count: 0 };
+  }
+
+  const total = data.reduce((acc, curr) => acc + (curr.rating || 0), 0);
+  const average = total / data.length;
+
+  return { average, count: data.length };
+}
+
