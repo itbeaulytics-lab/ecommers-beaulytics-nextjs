@@ -17,6 +17,7 @@ type Props = {
   };
 };
 
+// Product Card Component
 export default function ProductCard({ product }: Props) {
   function formatRp(n: number) {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
@@ -25,7 +26,7 @@ export default function ProductCard({ product }: Props) {
   return (
     <Card className="group relative flex flex-col bg-white border border-neutral-200 overflow-hidden rounded-lg hover:shadow-md transition-shadow duration-300">
       {/* Image Section */}
-      <Link href={`/products/${product.id}`} className="relative block aspect-square w-full bg-neutral-100 overflow-hidden">
+      <Link href={`/products/${product.id}`} prefetch={false} className="relative block aspect-square w-full bg-neutral-100 overflow-hidden">
         {product.image ? (
           <Image
             src={product.image}
@@ -43,6 +44,7 @@ export default function ProductCard({ product }: Props) {
         {/* Product Name */}
         <Link
           href={`/products/${product.id}`}
+          prefetch={false}
           className="line-clamp-2 min-h-[2.5rem] text-sm text-neutral-800 leading-snug hover:text-brand-primary transition-colors"
           title={product.name}
         >

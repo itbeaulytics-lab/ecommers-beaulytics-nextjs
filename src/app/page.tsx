@@ -10,29 +10,58 @@ export const revalidate = 0;
 export default async function Home() {
   const supabase = await getServerSupabaseRSC();
 
+  // 1. Helper function to format product data with relational math
+  function formatProductData(r: any) {
+    const reviews = r.reviews || [];
+    const reviewCount = reviews.length;
+    const avgRating =
+      reviewCount > 0
+        ? reviews.reduce((acc: number, curr: any) => acc + (curr.rating || 0), 0) / reviewCount
+        : 0;
+    const clickCount = r.outbound_clicks?.length || 0;
+
+    return {
+      id: String(r.id),
+      name: r.name,
+      price: Number(r.price) || 0,
+      image: r.image || "/vercel.svg",
+      rating: avgRating,
+      category: r.category,
+      review_count: reviewCount,
+      click_count: clickCount,
+    };
+  }
+
+  // 2. Select string for all queries
+  const selectQuery = "id,name,price,image,rating,category,reviews(rating),outbound_clicks(id)";
+
+  // Fetch Featured Products
   const { data: featuredProducts } = await supabase
     .from("products")
-    .select("*")
+    .select(selectQuery)
     .eq("is_featured", true)
     .limit(4);
 
+  // Fetch Best Sellers
   const { data: bestSellers } = await supabase
     .from("products")
-    .select("id,name,price,image")
-    .eq("featured", true)
+    .select(selectQuery)
+    .eq("featured", true) // Assuming 'featured' field is used for best sellers logic or it's a specific flag
     .limit(4);
 
+  // Fallback if no best sellers
   let rows = bestSellers ?? [];
   if (!rows || rows.length === 0) {
     const { data: top } = await supabase
       .from("products")
-      .select("id,name,price,image")
+      .select(selectQuery)
       .limit(4);
     rows = top ?? [];
   }
 
-  const bestSellerItems = rows.map((r: any) => ({ id: String(r.id), name: r.name, price: Number(r.price) || 0, image: r.image || "/vercel.svg", rating: 0 }));
-  const featuredItems = (featuredProducts ?? []).map((r: any) => ({ id: String(r.id), name: r.name, price: Number(r.price) || 0, image: r.image || "/vercel.svg", rating: r.rating || 0, category: r.category }));
+  // 3. Map the data using the helper function
+  const featuredItems = (featuredProducts ?? []).map(formatProductData);
+  const bestSellerItems = rows.map(formatProductData);
 
   return (
     <main>
@@ -50,6 +79,7 @@ export default async function Home() {
             <div className="flex overflow-x-auto pb-4 gap-4 snap-x md:grid md:grid-cols-4 md:gap-6 md:pb-0 scrollbar-hide">
               {featuredItems.map((p: any) => (
                 <div key={p.id} className="w-[200px] md:w-auto snap-center shrink-0">
+                  {/* 4. Pass the fully formatted object directly */}
                   <ProductCard product={p} />
                 </div>
               ))}
@@ -67,9 +97,9 @@ export default async function Home() {
             <p className="mt-2 text-sm text-brand-light">Pilihan populer dengan rating tinggi.</p>
           </div>
           <div className="flex overflow-x-auto pb-4 gap-4 snap-x md:grid md:grid-cols-4 md:gap-6 md:pb-0 scrollbar-hide">
-            {bestSellerItems.map((p) => (
+            {bestSellerItems.map((p: any) => (
               <div key={p.id} className="w-[200px] md:w-auto snap-center shrink-0">
-                <ProductCard product={{ id: p.id, name: p.name, price: p.price, image: p.image, rating: p.rating }} />
+                <ProductCard product={p} />
               </div>
             ))}
           </div>
@@ -123,3 +153,4 @@ export default async function Home() {
     </main>
   );
 }
+
