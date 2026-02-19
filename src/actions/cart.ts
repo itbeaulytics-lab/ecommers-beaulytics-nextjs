@@ -112,3 +112,16 @@ export async function removeCartItem(formData: FormData) {
   await supabase.from("cart_items").delete().eq("id", itemId);
   revalidatePath("/cart");
 }
+
+export async function clearCart() {
+  const supabase = await getServerSupabase();
+  const { data: userRes } = await supabase.auth.getUser();
+  const user = userRes?.user;
+
+  const cartId = await getOrCreateCartId(supabase, user?.id);
+
+  if (cartId) {
+    await supabase.from("cart_items").delete().eq("cart_id", cartId);
+    revalidatePath("/cart");
+  }
+}

@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { useCartStore } from "@/store/cartStore";
 import { addToCart } from "@/actions/cart";
 import { trackOutboundClick } from "@/actions/tracking";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { Loader2, Minus, Plus, X, Check, Copy } from "lucide-react";
 
 type Product = {
@@ -76,6 +77,16 @@ export default function ProductPurchaseCard({ product }: { product: Product }) {
 
     const handleAction = async (action: "cart" | "buy") => {
         if (loadingCode) return;
+
+        // Validate Auth
+        const supabase = getSupabaseClient();
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!session) {
+            router.push("/auth/login");
+            return;
+        }
+
         setLoadingCode(action);
 
         try {
