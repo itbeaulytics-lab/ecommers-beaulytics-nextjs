@@ -43,24 +43,35 @@ export default function ProductGrid() {
 
         const { data, error } = await query;
         if (error) throw error;
-        const list: Product[] = (data || []).map((r: any) => ({
-          id: String(r.id),
-          name: r.name,
-          price: Number(r.price) || 0,
-          image: r.image || "",
-          rating: Number(r.rating ?? 0) || 0,
-          review_count: Number(r.review_count ?? 0) || 0,
-          click_count: Number(r.click_count ?? 0) || 0,
-          skinType: r.skinType || "",
-          keyIngredients: Array.isArray(r.keyIngredients) ? r.keyIngredients : [],
-          benefits: Array.isArray(r.benefits) ? r.benefits : [],
-          size: r.size || "",
-          category: r.category || "",
-          category_id: Number(r.category_id) || 0,
-          product_type_id: Number(r.product_type_id) || 0,
-          how_to_use: r.how_to_use || "",
-          ingredients: Array.isArray(r.keyIngredients) ? r.keyIngredients : [],
-        }));
+        const list: Product[] = (data || []).map((r: any) => {
+          // Calculate live rating and review count from reviews relation
+          const reviews = r.reviews || [];
+          const totalRating = reviews.reduce((sum: number, rev: any) => sum + (rev.rating || 0), 0);
+          const reviewCount = reviews.length;
+          const avgRating = reviewCount > 0 ? totalRating / reviewCount : 0;
+
+          // Get live click count from outbound_clicks relation
+          const clickCount = r.outbound_clicks?.[0]?.count || 0;
+
+          return {
+            id: String(r.id),
+            name: r.name,
+            price: Number(r.price) || 0,
+            image: r.image || "",
+            rating: Number(r.rating ?? 0) || 0,
+            review_count: Number(r.review_count) || 0,
+            click_count: Number(r.click_count) || 0,
+            skinType: r.skinType || "",
+            keyIngredients: Array.isArray(r.keyIngredients) ? r.keyIngredients : [],
+            benefits: Array.isArray(r.benefits) ? r.benefits : [],
+            size: r.size || "",
+            category: r.category || "",
+            category_id: Number(r.category_id) || 0,
+            product_type_id: Number(r.product_type_id) || 0,
+            how_to_use: r.how_to_use || "",
+            ingredients: Array.isArray(r.keyIngredients) ? r.keyIngredients : [],
+          };
+        });
         if (active) setItems(list);
       } catch (e: any) {
         console.error("🔥 ProductGrid Error:", e?.message || e);

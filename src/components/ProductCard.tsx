@@ -58,21 +58,15 @@ export default function ProductCard({ product }: Props) {
           {formatRp(product.price)}
         </div>
 
-        {/* Rating & Stats */}
-        <div className="flex items-center gap-1 text-xs text-neutral-500">
+        {/* Rating & Stats - Tokopedia Style */}
+        <div className="flex items-center gap-1 text-[11px] text-neutral-500">
           <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
           <span className="font-medium text-neutral-700">
-            {rating > 0 ? rating.toFixed(1) : "New"}
+            {rating > 0 ? rating.toFixed(1) : "0.0"}
           </span>
-          {reviewCount > 0 && (
-            <span className="text-neutral-400">({reviewCount})</span>
-          )}
-          {clickCount > 0 && (
-            <>
-              <span className="text-neutral-300">•</span>
-              <span>{clickCount} diminati</span>
-            </>
-          )}
+          <span className="text-neutral-400">({reviewCount})</span>
+          <span className="text-neutral-300">•</span>
+          <span>{clickCount} Orang Minat</span>
         </div>
       </div>
     </Card>

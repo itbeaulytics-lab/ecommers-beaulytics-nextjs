@@ -107,6 +107,15 @@ export async function getProductRatingSummary(productId: string) {
   const total = data.reduce((acc, curr) => acc + (curr.rating || 0), 0);
   const average = total / data.length;
 
+  // --- NEW: Sync to products table for catalog consistency ---
+  await supabase
+    .from("products")
+    .update({
+      rating: average,
+      review_count: data.length,
+    })
+    .eq("id", productId);
+
   return { average, count: data.length };
 }
 

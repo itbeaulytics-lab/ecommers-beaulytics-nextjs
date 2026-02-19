@@ -53,6 +53,14 @@ export async function getOutboundClickCount(productId: string) {
         return 0;
     }
 
+    // --- NEW: Sync to products table for catalog consistency ---
+    if (count !== null) {
+        await supabase
+            .from("products")
+            .update({ click_count: count })
+            .eq("id", productId);
+    }
+
     return count || 0;
 }
 
