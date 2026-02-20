@@ -18,7 +18,6 @@ const NAV_ITEMS = [
 const LINK_CLASSES = "text-sm font-medium text-brand-light hover:text-brand-dark transition-colors duration-200";
 const MOBILE_LINK_CLASSES = "rounded-full px-4 py-3 text-sm font-medium text-brand-light hover:bg-brand-secondary hover:text-brand-dark transition-all";
 const ICON_BUTTON_CLASSES = "hidden md:flex h-10 w-10 items-center justify-center rounded-full bg-transparent text-brand-dark hover:bg-brand-secondary transition-all";
-const MOBILE_ICON_BUTTON_CLASSES = "flex h-10 w-10 items-center justify-center rounded-full bg-brand-secondary text-brand-dark transition-all";
 
 type NavbarProps = {
   user: User | null;

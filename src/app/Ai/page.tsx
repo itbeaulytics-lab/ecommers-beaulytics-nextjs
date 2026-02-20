@@ -5,11 +5,6 @@ import ChatBubble from "@/features/chat/components/ChatBubble";
 import ChatInput from "@/features/chat/components/ChatInput";
 import Image from "next/image";
 
-const starterPrompts = [
-  "Kulitku sering jerawatan dan berminyak, skincare apa yang cocok?",
-  "Ada ruam merah di pipi setelah pakai produk baru, harus gimana?",
-  "Tolong buatin rutinitas pagi/malam untuk kulit kering dan sensitif.",
-];
 
 export default function AiPage() {
   const {
@@ -95,18 +90,6 @@ export default function AiPage() {
                 Saya Beaulytics AI. Tanyakan tentang masalah kulit, rekomendasi
                 produk, atau rutinitas skincare harianmu.
               </p>
-
-              <div className="mt-8 w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {starterPrompts.map((prompt) => (
-                  <button
-                    key={prompt}
-                    onClick={() => sendMessage(prompt)}
-                    className="text-left bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 shadow-sm hover:shadow-md hover:border-black/20 hover:-translate-y-0.5 transition-all"
-                  >
-                    {prompt}
-                  </button>
-                ))}
-              </div>
             </div>
           ) : (
             /* MESSAGES LIST */

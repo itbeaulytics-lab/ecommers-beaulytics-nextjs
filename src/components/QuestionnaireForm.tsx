@@ -4,7 +4,7 @@ import { useActionState, useMemo, useRef, useState, useTransition } from "react"
 import Card from "@/shared/ui/Card";
 import Button from "@/shared/ui/Button";
 import { QUESTIONS } from "@/shared/lib/constants";
-import { saveSkinProfile } from "@/actions/questionnaire";
+import { saveSkinProfile } from "@/features/questionnaire/actions";
 import { getSupabaseClient } from "@/shared/lib/supabaseClient";
 
 type Question = (typeof QUESTIONS)[number];
