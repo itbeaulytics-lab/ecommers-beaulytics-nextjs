@@ -5,8 +5,8 @@ import { useTransition, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Button from "@/shared/ui/Button";
 import Input from "@/shared/ui/Input";
-import GoogleButton from "@/features/auth/components/GoogleButton";
-import { loginAction } from "@/features/auth/actions";
+import GoogleButton from "./GoogleButton";
+import { loginAction } from "../actions";
 import { safeDecode, toStr } from "@/lib/utils";
 
 export default function LoginForm() {

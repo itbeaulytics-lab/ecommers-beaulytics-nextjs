@@ -5,7 +5,7 @@ import { useState } from "react";
 import { trackOutboundClick } from "@/actions/tracking";
 import { Loader2, ExternalLink } from "lucide-react";
 import { getSupabaseClient } from "@/lib/supabaseClient";
-import LoginAuthModal from "@/components/ui/LoginAuthModal";
+import LoginAuthModal from "@/features/auth/components/LoginAuthModal";
 
 type Props = {
     productId: string;

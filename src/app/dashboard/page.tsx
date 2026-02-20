@@ -1,11 +1,11 @@
 import { User } from "lucide-react";
 
 import { getServerSupabaseRSC } from "@/lib/supabaseServerRSC";
-import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
+import Card from "@/shared/ui/Card";
+import Button from "@/shared/ui/Button";
 import { updateProfile } from "@/actions/profile";
 import SkinProfilePanel from "@/components/SkinProfilePanel";
-import LogoutButton from "@/components/LogoutButton";
+import LogoutButton from "@/features/auth/components/LogoutButton";
 import { requireUser } from "@/lib/authHelpers";
 
 export default async function DashboardPage() {

@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import { getSupabaseClient } from "@/lib/supabaseClient";
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
+import Input from "@/shared/ui/Input";
+import Button from "@/shared/ui/Button";
 
 export default function ResetPage() {
   const [password, setPassword] = useState("");

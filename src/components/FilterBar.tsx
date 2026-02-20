@@ -1,7 +1,7 @@
 "use client";
-import Select from "@/components/ui/Select";
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
+import Select from "@/shared/ui/Select";
+import Input from "@/shared/ui/Input";
+import Button from "@/shared/ui/Button";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseClient } from "@/lib/supabaseClient";
@@ -57,7 +57,7 @@ export default function FilterBar() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Select value={category} onChange={(e) => setCategory(e.target.value)}>
           <option value="">All Categories</option>
-          {(categories.length ? categories : ["cleanser","toner","serum","moisturizer","sunscreen","sunblock"])?.map((c) => (
+          {(categories.length ? categories : ["cleanser", "toner", "serum", "moisturizer", "sunscreen", "sunblock"])?.map((c) => (
             <option key={c} value={c}>{c[0].toUpperCase() + c.slice(1)}</option>
           ))}
         </Select>

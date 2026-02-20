@@ -8,7 +8,7 @@ import { addToCart } from "@/actions/cart";
 import { trackOutboundClick } from "@/actions/tracking";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import { Loader2, Minus, Plus, X, Check, Copy } from "lucide-react";
-import LoginAuthModal from "@/components/ui/LoginAuthModal";
+import LoginAuthModal from "@/features/auth/components/LoginAuthModal";
 
 type Product = {
     id: string;

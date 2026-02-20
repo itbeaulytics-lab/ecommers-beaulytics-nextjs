@@ -1,6 +1,6 @@
 import Hero from "@/components/Hero";
-import Card from "@/components/ui/Card";
-import Badge from "@/components/ui/Badge";
+import Card from "@/shared/ui/Card";
+import Badge from "@/shared/ui/Badge";
 import ProductCard from "@/components/ProductCard";
 import { getServerSupabaseRSC } from "@/lib/supabaseServerRSC";
 

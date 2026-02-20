@@ -1,8 +1,8 @@
 "use server";
 
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
-import AuthCard from "@/components/auth/AuthCard";
+import Input from "@/shared/ui/Input";
+import Button from "@/shared/ui/Button";
+import AuthCard from "@/features/auth/components/AuthCard";
 import { safeDecode } from "@/lib/utils";
 
 type ForgotPageProps = { searchParams: Promise<{ error?: string; info?: string }> };

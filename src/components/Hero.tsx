@@ -1,4 +1,4 @@
-import Button from "@/components/ui/Button";
+import Button from "@/shared/ui/Button";
 import Image from "next/image";
 import { Sparkles } from "lucide-react";
 

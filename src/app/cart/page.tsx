@@ -1,5 +1,5 @@
 "use client";
-import Button from "@/components/ui/Button";
+import Button from "@/shared/ui/Button";
 import Link from "next/link";
 import Image from "next/image";
 import { useCartStore } from "@/store/cartStore";

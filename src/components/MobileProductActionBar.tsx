@@ -5,7 +5,7 @@ import { useCartStore } from "@/store/cartStore";
 import { addToCart } from "@/actions/cart";
 import { Loader2, ShoppingBag } from "lucide-react";
 import { getSupabaseClient } from "@/lib/supabaseClient";
-import LoginAuthModal from "@/components/ui/LoginAuthModal";
+import LoginAuthModal from "@/features/auth/components/LoginAuthModal";
 
 type Product = {
     id: string;

@@ -1,8 +1,8 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import Button from "@/components/ui/Button";
-import Badge from "@/components/ui/Badge";
+import Button from "@/shared/ui/Button";
+import Badge from "@/shared/ui/Badge";
 import type { Product } from "@/types/product";
 import { useCartStore } from "@/store/cartStore";
 import { useCompareStore } from "@/store/compareStore";

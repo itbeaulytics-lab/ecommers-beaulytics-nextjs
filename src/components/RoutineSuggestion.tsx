@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
-import Card from "@/components/ui/Card";
+import Card from "@/shared/ui/Card";
 import type { Routine } from "@/lib/routineGenerator";
 
 type Props = {
@@ -22,8 +22,8 @@ export default function RoutineSuggestion({ routine }: Props) {
                     <button
                         onClick={() => setTab("morning")}
                         className={`flex-1 px-4 py-3 text-sm font-medium transition ${tab === "morning"
-                                ? "border-b-2 border-brand-primary bg-brand-secondary/30 text-brand-dark"
-                                : "text-brand-light hover:text-brand-dark"
+                            ? "border-b-2 border-brand-primary bg-brand-secondary/30 text-brand-dark"
+                            : "text-brand-light hover:text-brand-dark"
                             }`}
                     >
                         Routine Pagi ☀️
@@ -31,8 +31,8 @@ export default function RoutineSuggestion({ routine }: Props) {
                     <button
                         onClick={() => setTab("night")}
                         className={`flex-1 px-4 py-3 text-sm font-medium transition ${tab === "night"
-                                ? "border-b-2 border-brand-primary bg-brand-secondary/30 text-brand-dark"
-                                : "text-brand-light hover:text-brand-dark"
+                            ? "border-b-2 border-brand-primary bg-brand-secondary/30 text-brand-dark"
+                            : "text-brand-light hover:text-brand-dark"
                             }`}
                     >
                         Routine Malam 🌙

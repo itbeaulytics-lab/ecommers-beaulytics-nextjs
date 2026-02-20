@@ -1,8 +1,8 @@
 'use client';
 
 import type { User } from '@supabase/supabase-js';
-import Card from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
+import Card from '@/shared/ui/Card';
+import Badge from '@/shared/ui/Badge';
 
 type SkinProfilePanelProps = {
   user: User;

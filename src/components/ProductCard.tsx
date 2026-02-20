@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import Card from "@/components/ui/Card";
+import Card from "@/shared/ui/Card";
 import { MoreHorizontal, Star } from "lucide-react";
 
 type Props = {

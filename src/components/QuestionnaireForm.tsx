@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useMemo, useRef, useState, useTransition } from "react";
-import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
+import Card from "@/shared/ui/Card";
+import Button from "@/shared/ui/Button";
 import { QUESTIONS } from "@/lib/constants";
 import { saveSkinProfile } from "@/actions/questionnaire";
 import { getSupabaseClient } from "@/lib/supabaseClient";
