@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { getServerSupabaseRSC } from "@/lib/supabaseServerRSC";
-import { LoginSchema, RegisterSchema } from "@/lib/schemas";
+import { LoginSchema, RegisterSchema } from "./schemas";
 
 export async function loginAction(formData: FormData) {
   const parsed = LoginSchema.safeParse({
