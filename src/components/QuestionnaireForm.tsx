@@ -20,9 +20,9 @@ type Props = {
 type FormState = { error?: string } | null;
 
 export default function QuestionnaireForm({ user }: Props) {
-  const [answers, setAnswers] = useState<Record<string, string>>(() => {
+  const [answers, setAnswers] = useState<Record<string, string | string[]>>(() => {
     const meta = user?.user_metadata as any;
-    const skin = meta?.skin_profile as { answers?: Record<string, string> } | undefined;
+    const skin = meta?.skin_profile as { answers?: Record<string, string | string[]> } | undefined;
     return skin?.answers || {};
   });
   const [current, setCurrent] = useState(0);
@@ -38,12 +38,33 @@ export default function QuestionnaireForm({ user }: Props) {
 
   const isLast = current === QUESTIONS.length - 1;
   const currentQuestion: Question = QUESTIONS[current];
-  const currentAnswer = answers[currentQuestion.key] ?? "";
-  const canProceed = useMemo(() => !!currentAnswer, [currentAnswer]);
-  const allAnswered = useMemo(() => QUESTIONS.every((q) => (answers[q.key] || "").trim().length > 0), [answers]);
+  const currentAnswer = answers[currentQuestion.key];
+  const canProceed = useMemo(() => {
+    if (Array.isArray(currentAnswer)) return currentAnswer.length > 0;
+    return !!currentAnswer;
+  }, [currentAnswer]);
 
-  function updateAnswer(key: string, value: string) {
-    setAnswers((prev) => ({ ...prev, [key]: value }));
+  const allAnswered = useMemo(() => QUESTIONS.every((q) => {
+    const ans = answers[q.key];
+    if (Array.isArray(ans)) return ans.length > 0;
+    return typeof ans === "string" && ans.trim().length > 0;
+  }), [answers]);
+
+  function toggleAnswer(key: string, option: string, isMultiple?: boolean) {
+    setAnswers((prev) => {
+      if (!isMultiple) {
+        return { ...prev, [key]: option };
+      }
+
+      const currentVal = prev[key];
+      const arr = Array.isArray(currentVal) ? currentVal : (currentVal ? [currentVal as string] : []);
+
+      if (arr.includes(option)) {
+        return { ...prev, [key]: arr.filter(v => v !== option) };
+      } else {
+        return { ...prev, [key]: [...arr, option] };
+      }
+    });
   }
 
   function next() {
@@ -67,11 +88,19 @@ export default function QuestionnaireForm({ user }: Props) {
       {
         role: "user",
         content: QUESTIONS.map((q, index) => {
-          const answerText = answers[q.key] ?? "";
-          // Cari index jawaban di dalam array options untuk mendapatkan nomor opsinya (1-4)
-          const optionIndex = (q.options as readonly string[]).indexOf(answerText) + 1;
+          const answerVal = answers[q.key];
+          let answerDisplay = "";
 
-          return `Q${index + 1}. ${q.label}\nSelected: Opt ${optionIndex} (${answerText})`;
+          if (Array.isArray(answerVal)) {
+            const indices = answerVal.map(ans => (q.options as readonly string[]).indexOf(ans) + 1).join(", ");
+            answerDisplay = `Opts [${indices}] (${answerVal.join(", ")})`;
+          } else {
+            const answerText = (answerVal as string) ?? "";
+            const optionIndex = (q.options as readonly string[]).indexOf(answerText) + 1;
+            answerDisplay = `Opt ${optionIndex} (${answerText})`;
+          }
+
+          return `Q${index + 1}. ${q.label}\nSelected: ${answerDisplay}`;
         }).join("\n\n"),
       },
     ];
@@ -150,12 +179,16 @@ export default function QuestionnaireForm({ user }: Props) {
               <div className="text-lg font-semibold text-brand-dark">{currentQuestion.label}</div>
               <div className="grid gap-3">
                 {currentQuestion.options.map((opt) => {
-                  const checked = currentAnswer === opt;
+                  const isMultiple = (currentQuestion as any).multiple === true;
+                  const checked = isMultiple && Array.isArray(currentAnswer)
+                    ? currentAnswer.includes(opt)
+                    : currentAnswer === opt;
+
                   return (
                     <button
                       key={opt}
                       type="button"
-                      onClick={() => updateAnswer(currentQuestion.key, opt)}
+                      onClick={() => toggleAnswer(currentQuestion.key, opt, isMultiple)}
                       className={
                         "flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm transition " +
                         (checked
@@ -164,7 +197,17 @@ export default function QuestionnaireForm({ user }: Props) {
                       }
                     >
                       <span>{opt}</span>
-                      <span className={"h-4 w-4 rounded-full border " + (checked ? "border-brand-primary bg-brand-primary" : "border-neutral-300")} />
+                      {isMultiple ? (
+                        <span className={"flex h-5 w-5 items-center justify-center rounded border " + (checked ? "border-brand-primary bg-brand-primary text-white" : "border-neutral-300")}>
+                          {checked && (
+                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </span>
+                      ) : (
+                        <span className={"h-4 w-4 rounded-full border " + (checked ? "border-brand-primary bg-brand-primary" : "border-neutral-300")} />
+                      )}
                     </button>
                   );
                 })}

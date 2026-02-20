@@ -119,5 +119,22 @@ export const QUESTIONS = [
       "Mulai terlihat jelas", // [cite: 72]
       "Cukup banyak" // [cite: 73]
     ]
+  },
+
+  // G. MASALAH KULIT
+  {
+    key: "q12_skin_concerns",
+    label: "Apa saja masalah kulit yang sedang Anda alami? (Bisa pilih lebih dari satu)",
+    multiple: true,
+    options: [
+      "Jerawat atau Beruntusan",
+      "Komedo (Blackhead/Whitehead)",
+      "Bekas Jerawat Kehitaman (PIH)",
+      "Bekas Jerawat Kemerahan (PIE)",
+      "Kusam atau Warna Kulit Tidak Merata",
+      "Kemerahan atau Kulit Sensitif",
+      "Garis Halus atau Kerutan",
+      "Pori-pori Besar"
+    ]
   }
 ] as const;
