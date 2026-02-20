@@ -17,13 +17,8 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/auth/login?error=auth_failed", requestUrl.origin));
   }
 
-  // Check skin_profiles to route dynamically
-  const { data: profile } = await supabase
-    .from("skin_profiles")
-    .select("id")
-    .eq("user_id", authData.session.user.id)
-    .single();
-
-  const destinationPath = profile ? "/dashboard" : "/questionnaire";
+  // Check user metadata to route dynamically
+  const hasProfile = !!authData.session.user.user_metadata?.skin_profile;
+  const destinationPath = hasProfile ? "/dashboard" : "/questionnaire";
   return NextResponse.redirect(new URL(destinationPath, requestUrl.origin));
 }

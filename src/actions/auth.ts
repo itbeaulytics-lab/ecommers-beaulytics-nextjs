@@ -3,17 +3,6 @@
 import { redirect } from "next/navigation";
 import { getServerSupabaseRSC } from "@/lib/supabaseServerRSC";
 import { LoginSchema, RegisterSchema } from "@/lib/schemas";
-import { type SupabaseClient } from "@supabase/supabase-js";
-
-async function checkQuestionnaire(supabase: SupabaseClient, userId: string): Promise<boolean> {
-  const { data } = await supabase
-    .from("skin_profiles")
-    .select("id")
-    .eq("user_id", userId)
-    .single();
-
-  return !!data;
-}
 
 export async function loginAction(formData: FormData) {
   const parsed = LoginSchema.safeParse({
@@ -31,7 +20,7 @@ export async function loginAction(formData: FormData) {
 
   // Smart Login: Try to sign in first
   const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
-  let userId = authData?.user?.id;
+  let user = authData?.user;
 
   if (authError) {
     // Fallback: Auto-register if sign-in fails
@@ -47,14 +36,14 @@ export async function loginAction(formData: FormData) {
       return { error: signUpError.message };
     }
 
-    userId = signUpData?.user?.id;
+    user = signUpData?.user;
   }
 
-  if (!userId) {
+  if (!user) {
     return { error: "Authentication failed" };
   }
 
-  const hasProfile = await checkQuestionnaire(supabase, userId);
+  const hasProfile = !!user?.user_metadata?.skin_profile;
   redirect(hasProfile ? "/dashboard" : "/questionnaire");
 }
 
@@ -80,7 +69,7 @@ export async function registerAction(formData: FormData) {
     options: { data: { full_name } }
   });
 
-  let userId = authData?.user?.id;
+  let user = authData?.user;
 
   if (authError) {
     // Fallback: Auto-login if sign-up fails (e.g., user already exists)
@@ -90,13 +79,13 @@ export async function registerAction(formData: FormData) {
       return { error: signInError.message };
     }
 
-    userId = signInData?.user?.id;
+    user = signInData?.user;
   }
 
-  if (!userId) {
+  if (!user) {
     return { error: "Authentication failed" };
   }
 
-  const hasProfile = await checkQuestionnaire(supabase, userId);
+  const hasProfile = !!user?.user_metadata?.skin_profile;
   redirect(hasProfile ? "/dashboard" : "/questionnaire");
 }

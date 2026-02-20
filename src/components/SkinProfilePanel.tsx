@@ -8,6 +8,41 @@ type SkinProfilePanelProps = {
   user: User;
 };
 
+const LABEL_MAP: Record<string, string> = {
+  "Hyperpigmentation": "Flek Hitam / Bekas Gelap (Hiperpigmentasi)",
+  "Erythema": "Kemerahan / Iritasi (Eritema)",
+  "Erythema / Redness": "Kemerahan / Iritasi (Eritema)",
+  "Redness": "Kemerahan / Iritasi (Eritema)",
+  "Acne Vulgaris": "Jerawat Aktif (Acne)",
+  "Excessive Sebum": "Sangat Berminyak (Sebum Berlebih)",
+  "Atopic": "Mudah Gatal / Eksim (Atopik)",
+  "Atopic / Dermatitis": "Mudah Gatal / Eksim (Atopik)",
+  "Dermatitis": "Mudah Gatal / Eksim (Atopik)",
+  "Wrinkles": "Garis Halus / Kerutan (Aging)",
+  "Wrinkles / Aging": "Garis Halus / Kerutan (Aging)",
+  "Aging": "Garis Halus / Kerutan (Aging)",
+  "Enlarged Pores": "Pori-pori Besar",
+  "Skin Barrier Damage": "Kulit Mengelupas / Sensitif (Skin Barrier Rusak)",
+  "Post-Inflammatory Hyperpigmentation": "Flek Hitam / Bekas Gelap (Hiperpigmentasi)",
+};
+
+function getFriendlyLabel(tag: string): string {
+  const t = tag.trim();
+  const lowerT = t.toLowerCase();
+
+  // Exact match first
+  for (const [key, val] of Object.entries(LABEL_MAP)) {
+    if (key.toLowerCase() === lowerT) return val;
+  }
+
+  // Partial match
+  for (const [key, val] of Object.entries(LABEL_MAP)) {
+    if (lowerT.includes(key.toLowerCase())) return val;
+  }
+
+  return t;
+}
+
 export default function SkinProfilePanel({ user }: SkinProfilePanelProps) {
   const meta = (user?.user_metadata || {}) as any;
   const summaryText = (meta?.skin_profile?.summary as string) || (meta?.skinshort as string) || "";
@@ -23,13 +58,18 @@ export default function SkinProfilePanel({ user }: SkinProfilePanelProps) {
 
   if (!tags.length) {
     if (summaryText) {
+      const friendlySummary = summaryText
+        .split(',')
+        .map(s => getFriendlyLabel(s))
+        .join(', ');
+
       return (
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-brand-dark">Skin Profile</h2>
             <span className="text-[10px] font-medium uppercase tracking-wider text-brand-primary">AI Analysis</span>
           </div>
-          <p className="mt-4 text-sm text-brand-dark">{summaryText}</p>
+          <p className="mt-4 text-sm text-brand-dark">{friendlySummary}</p>
         </Card>
       );
     }
@@ -52,8 +92,8 @@ export default function SkinProfilePanel({ user }: SkinProfilePanelProps) {
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
         {tags.map((item, idx) => (
-          <Badge key={`${item}-${idx}`} variant="outline" className="rounded-2xl bg-white px-4 py-2 text-sm">
-            {item}
+          <Badge key={`${item}-${idx}`} variant="outline" className="rounded-2xl bg-white px-4 py-2 text-sm text-center">
+            {getFriendlyLabel(item)}
           </Badge>
         ))}
       </div>
