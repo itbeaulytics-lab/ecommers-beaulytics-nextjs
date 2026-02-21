@@ -12,6 +12,7 @@ import { analyzeIngredients } from "@/features/products/lib/ingredientAnalyzer";
 
 export interface ProductDetailMobileProps {
     user: any;
+    userProfile?: any;
     product: Product & {
         description?: string;
         ingredients?: string[];
@@ -33,6 +34,7 @@ export interface ProductDetailMobileProps {
 
 export default function ProductDetailMobile({
     user,
+    userProfile,
     product,
     clickCount,
     hasRating,
@@ -137,7 +139,7 @@ export default function ProductDetailMobile({
                                         ) : (
                                             <div className="space-y-4">
                                                 <div className="flex flex-wrap gap-2">
-                                                    {analyzeIngredients(product.ingredients).map((badge, idx) => {
+                                                    {analyzeIngredients(product.ingredients, userProfile).map((badge, idx) => {
                                                         let badgeClass = "";
                                                         if (badge.status === 'negative') badgeClass = "bg-rose-50 text-rose-700 border-rose-200 font-medium";
                                                         else if (badge.status === 'positive') badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200 font-medium";

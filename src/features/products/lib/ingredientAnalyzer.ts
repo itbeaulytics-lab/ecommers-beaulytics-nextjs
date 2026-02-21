@@ -5,7 +5,12 @@ export interface IngredientBadge {
     status: IngredientStatus;
 }
 
-export function analyzeIngredients(ingredients?: string[] | null): IngredientBadge[] {
+export interface UserSkinProfile {
+    skin_type?: string;
+    skin_concerns?: string[];
+}
+
+export function analyzeIngredients(ingredients?: string[] | null, userProfile?: UserSkinProfile | null): IngredientBadge[] {
     if (!ingredients || ingredients.length === 0) {
         return [];
     }
@@ -63,10 +68,32 @@ export function analyzeIngredients(ingredients?: string[] | null): IngredientBad
         badges.push({ label, status: 'highlight' });
     });
 
+    // Personalized Acne Check
+    if (userProfile?.skin_concerns?.includes('Jerawat') &&
+        (highlightsFound.has('✨ Salicylic Acid') || highlightsFound.has('🌿 Centella Asiatica'))) {
+        badges.push({ label: '✨ Cocok untuk meredakan Jerawat Anda', status: 'highlight' });
+    }
+
     // Add negative badges (Peringatan)
-    if (hasAlcohol) badges.push({ label: '⚠️ Mengandung Alkohol', status: 'negative' });
-    if (hasFragrance) badges.push({ label: '⚠️ Mengandung Pewangi', status: 'negative' });
-    if (hasSulfate) badges.push({ label: '⚠️ Mengandung Sulfat', status: 'negative' });
+    if (hasAlcohol) {
+        if (userProfile?.skin_type?.includes('Kering')) {
+            badges.push({ label: '⚠️ Alkohol (Bikin kulit Anda makin kering)', status: 'negative' });
+        } else {
+            badges.push({ label: '⚠️ Mengandung Alkohol', status: 'negative' });
+        }
+    }
+
+    if (hasFragrance) {
+        if (userProfile?.skin_type?.includes('Sensitif')) {
+            badges.push({ label: '⚠️ Pewangi (Rentan untuk kulit sensitif Anda)', status: 'negative' });
+        } else {
+            badges.push({ label: '⚠️ Mengandung Pewangi', status: 'negative' });
+        }
+    }
+
+    if (hasSulfate) {
+        badges.push({ label: '⚠️ Mengandung Sulfat', status: 'negative' });
+    }
 
     // Add positive missing triggers (Klaim Aman)
     if (!hasAlcohol) badges.push({ label: '🟢 Bebas Alkohol', status: 'positive' });
