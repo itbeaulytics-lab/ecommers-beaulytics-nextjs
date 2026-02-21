@@ -68,6 +68,7 @@ const CHAT_PROMPT =
     "- Example 1: `[SEARCH: salicylic acid]`\n" +
     "- Example 2: `[SEARCH: sunscreen]`\n" +
     "- Example 3: `[SEARCH: acne]`\n" +
+    "- CRITICAL: DO NOT LIST THE PRODUCTS YOURSELF. DO NOT CREATE TABLES. Simply output the `[SEARCH: keyword]` tag and let the system UI handle the product display.\n" +
     "- ONLY use ONE main keyword. Do NOT use the [SEARCH] tag if they haven't asked for products yet.";
 
 const DIAGNOSIS_PROMPT =
@@ -209,7 +210,9 @@ export async function processSkinAnalysis({ messages, mode, apiKey }: ProcessSki
     // TANGKAP MAGIC KEYWORD DARI AI DAN CARI KE DATABASE
     const searchMatch = replyText.match(/\[SEARCH:\s*([^\]]+)\]/i);
     if (searchMatch && mode === "chat") {
-        const queryTerm = searchMatch[1].trim().toLowerCase();
+        const rawQuery = searchMatch[1].trim().toLowerCase();
+        // Pecah query jadi beberapa kata kunci (misal: "serum salicylic acid" -> ["serum", "salicylic", "acid"])
+        const queryTerms = rawQuery.split(" ").filter(Boolean);
         replyText = replyText.replace(searchMatch[0], "").trim();
 
         try {
@@ -217,12 +220,18 @@ export async function processSkinAnalysis({ messages, mode, apiKey }: ProcessSki
             const { data } = await supabase.from("products").select("id, name, price, image, category, ingredients, concerns").limit(50);
 
             if (data) {
-                recommendedProducts = data.filter((p: any) =>
-                    p.name.toLowerCase().includes(queryTerm) ||
-                    (p.category && p.category.toLowerCase().includes(queryTerm)) ||
-                    (Array.isArray(p.ingredients) && p.ingredients.some((i: string) => i.toLowerCase().includes(queryTerm))) ||
-                    (Array.isArray(p.concerns) && p.concerns.some((b: string) => b.toLowerCase().includes(queryTerm)))
-                ).slice(0, 3); // Ambil maksimal 3 produk terbaik
+                recommendedProducts = data.filter((p: any) => {
+                    // Gabungkan semua teks relevan dari produk ini
+                    const searchableText = [
+                        p.name,
+                        p.category,
+                        Array.isArray(p.ingredients) ? p.ingredients.join(" ") : p.ingredients,
+                        Array.isArray(p.concerns) ? p.concerns.join(" ") : p.concerns,
+                    ].filter(Boolean).join(" ").toLowerCase();
+
+                    // Pastikan SETIAP kata dari queryTerms ditemukan pada searchableText
+                    return queryTerms.every((qt: string) => searchableText.includes(qt));
+                }).slice(0, 3); // Ambil maksimal 3 produk terbaik
             }
         } catch (e) {
             console.error("Gagal menarik produk:", e);
