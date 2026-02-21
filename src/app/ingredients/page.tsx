@@ -57,7 +57,7 @@ export default async function IngredientsPage() {
                         <Sparkles className="w-6 h-6 text-brand-primary" />
                         Eksplorasi Semua Kandungan
                     </h2>
-                    <span className="text-sm font-medium text-neutral-500 bg-neutral-100 px-3 py-1 rounded-full">
+                    <span className="text-xs sm:text-sm font-medium text-neutral-500 bg-neutral-100 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full shrink-0">
                         {ingredients?.length || 0} Entri
                     </span>
                 </div>
@@ -84,10 +84,10 @@ export default async function IngredientsPage() {
                                             {ing.safety_level && (
                                                 <span
                                                     className={`shrink-0 inline-flex px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full ${isSafe
-                                                            ? "bg-green-100 text-green-700"
-                                                            : isDanger
-                                                                ? "bg-red-100 text-red-700"
-                                                                : "bg-yellow-100 text-yellow-700"
+                                                        ? "bg-green-100 text-green-700"
+                                                        : isDanger
+                                                            ? "bg-red-100 text-red-700"
+                                                            : "bg-yellow-100 text-yellow-700"
                                                         }`}
                                                 >
                                                     {ing.safety_level}
