@@ -210,31 +210,42 @@ export async function processSkinAnalysis({ messages, mode, apiKey }: ProcessSki
     // TANGKAP MAGIC KEYWORD DARI AI DAN CARI KE DATABASE
     const searchMatch = replyText.match(/\[SEARCH:\s*([^\]]+)\]/i);
     if (searchMatch && mode === "chat") {
-        const rawQuery = searchMatch[1].trim().toLowerCase();
-        // Pecah query jadi beberapa kata kunci (misal: "serum salicylic acid" -> ["serum", "salicylic", "acid"])
-        const queryTerms = rawQuery.split(" ").filter(Boolean);
+        const queryTerm = searchMatch[1].trim().toLowerCase();
+        // Hapus kode [SEARCH: xxx] dari pesan yang dikirim ke user
         replyText = replyText.replace(searchMatch[0], "").trim();
 
         try {
             const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-            const { data } = await supabase.from("products").select("id, name, price, image, category, ingredients, concerns").limit(50);
 
-            if (data) {
+            // TARIK SEMUA KOLOM (*) BIAR NGGAK ERROR KALAU NAMA KOLOM BEDA
+            const { data, error } = await supabase.from("products").select("*");
+
+            if (error) {
+                console.error("🔥 Error Supabase di AI Service:", error);
+            }
+
+            if (data && data.length > 0) {
                 recommendedProducts = data.filter((p: any) => {
-                    // Gabungkan semua teks relevan dari produk ini
-                    const searchableText = [
-                        p.name,
-                        p.category,
-                        Array.isArray(p.ingredients) ? p.ingredients.join(" ") : p.ingredients,
-                        Array.isArray(p.concerns) ? p.concerns.join(" ") : p.concerns,
-                    ].filter(Boolean).join(" ").toLowerCase();
+                    const name = String(p.name || "").toLowerCase();
+                    const cat = String(p.category || "").toLowerCase();
 
-                    // Pastikan SETIAP kata dari queryTerms ditemukan pada searchableText
-                    return queryTerms.every((qt: string) => searchableText.includes(qt));
-                }).slice(0, 3); // Ambil maksimal 3 produk terbaik
+                    // Gabungin semua kemungkinan nama array di database lu
+                    const ing = Array.isArray(p.ingredients) ? p.ingredients.join(" ").toLowerCase() : String(p.ingredients || "").toLowerCase();
+                    const keyIng = Array.isArray(p.keyIngredients) ? p.keyIngredients.join(" ").toLowerCase() : String(p.keyIngredients || "").toLowerCase();
+                    const ben = Array.isArray(p.benefits) ? p.benefits.join(" ").toLowerCase() : String(p.benefits || "").toLowerCase();
+
+                    const fullText = `${name} ${cat} ${ing} ${keyIng} ${ben}`;
+
+                    // Pecah keyword dari AI, misal "serum jerawat" -> cari "serum" ATAU "jerawat"
+                    const searchTerms = queryTerm.split(" ").filter((t: string) => t.length > 2);
+
+                    if (searchTerms.length === 0) return fullText.includes(queryTerm);
+
+                    return searchTerms.some((term: string) => fullText.includes(term));
+                }).slice(0, 3); // Ambil 3 produk terbaik
             }
         } catch (e) {
-            console.error("Gagal menarik produk:", e);
+            console.error("🔥 Gagal menarik produk:", e);
         }
     }
 
