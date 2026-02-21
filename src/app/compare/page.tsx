@@ -1,6 +1,7 @@
 import ProductComparison from "@/components/ProductComparison";
 import { getServerSupabase } from "@/shared/lib/supabaseServer";
 import type { UserSkinProfile } from "@/features/products/lib/ingredientAnalyzer";
+
 export const dynamic = "force-dynamic";
 
 export default async function ComparePage() {
@@ -14,7 +15,6 @@ export default async function ComparePage() {
   if (user && user.user_metadata?.skin_profile?.answers) {
     const answers = user.user_metadata.skin_profile.answers;
 
-    // Ekstraksi kebal error (menangani string atau array)
     let rawConcerns = answers["q12_skin_concerns"];
     let concernsArray: string[] = [];
 
