@@ -8,6 +8,7 @@ import ReviewForm from "@/features/reviews/components/ReviewForm";
 import ReviewList from "@/features/reviews/components/ReviewList";
 import type { Product } from "@/features/products/types";
 import { analyzeIngredients } from "@/features/products/lib/ingredientAnalyzer";
+import CompareButton from "@/features/compare/components/CompareButton";
 
 export interface ProductDetailDesktopProps {
     user: any;
@@ -83,6 +84,9 @@ export default function ProductDetailDesktop({
                                 {!hasRating && (
                                     <div className="text-neutral-500 text-xs">No reviews yet</div>
                                 )}
+                            </div>
+                            <div className="mt-4">
+                                <CompareButton product={product as any} />
                             </div>
                         </div>
 

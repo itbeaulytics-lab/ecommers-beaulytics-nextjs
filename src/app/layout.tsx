@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/shared/components/Navbar";
-import CompareBar from "@/components/CompareBar";
 import FooterWrapper from "@/shared/components/FooterWrapper";
 import ServiceWorkerRemover from "@/components/ServiceWorkerRemover";
 import { getServerSupabaseRSC } from "@/shared/lib/supabaseServerRSC";
@@ -84,7 +83,6 @@ export default async function RootLayout({
         <ServiceWorkerRemover />
         <Navbar user={user} />
         <main className="flex-1">{children}</main>
-        <CompareBar />
         <FooterWrapper />
       </body>
     </html>

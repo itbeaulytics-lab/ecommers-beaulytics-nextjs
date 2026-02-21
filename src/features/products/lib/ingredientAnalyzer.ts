@@ -79,8 +79,10 @@ export function analyzeIngredients(ingredients?: string[] | null, userProfile?: 
     }
 
     // Add negative badges (Peringatan)
+    // Add negative badges (Peringatan)
     if (hasAlcohol) {
-        if (isDrySkin) {
+        // Pake .toLowerCase() biar aman dari huruf besar/kecil
+        if (userProfile?.skin_type?.toLowerCase().includes('kering')) {
             badges.push({ label: '⚠️ Alkohol (Bikin kulit Anda makin kering)', status: 'negative' });
         } else {
             badges.push({ label: '⚠️ Mengandung Alkohol', status: 'negative' });
@@ -88,7 +90,10 @@ export function analyzeIngredients(ingredients?: string[] | null, userProfile?: 
     }
 
     if (hasFragrance) {
-        if (isSensitive) {
+        // Ceknya di skin_concerns karena pilihan 'Sensitif' ada di array concerns lu
+        const hasSensitiveConcern = userProfile?.skin_concerns?.some(c => c.toLowerCase().includes('sensitif'));
+
+        if (hasSensitiveConcern) {
             badges.push({ label: '⚠️ Pewangi (Rentan untuk kulit sensitif Anda)', status: 'negative' });
         } else {
             badges.push({ label: '⚠️ Mengandung Pewangi', status: 'negative' });
