@@ -10,6 +10,7 @@ export type ChatMessage = {
     role: "user" | "assistant";
     content: string | ChatContentPart[];
     action?: "login" | null;
+    products?: any[]; // NEW FIELD
 };
 
 export function useSkinChat() {
@@ -151,13 +152,14 @@ export function useSkinChat() {
             }
             const data = await res.json();
             const reply = data?.content?.trim();
+            const recommendedProducts = data?.products || [];
+
             setMessages((prev) => [
                 ...prev,
                 {
                     role: "assistant",
-                    content:
-                        reply ||
-                        "Maaf, terjadi kendala memproses permintaanmu. Coba ulangi atau cek koneksi ya.",
+                    content: reply || "Maaf, terjadi kendala memproses permintaanmu.",
+                    products: recommendedProducts.length > 0 ? recommendedProducts : undefined
                 },
             ]);
         } catch (error: any) {

@@ -90,9 +90,12 @@ export async function POST(req: Request) {
     }
 
     // 4. Business Logic (Service Layer)
-    const content = await processSkinAnalysis({ messages: messages as any, mode: mode as any, apiKey });
+    const result = await processSkinAnalysis({ messages: messages as any, mode: mode as any, apiKey });
 
-    return NextResponse.json({ content });
+    return NextResponse.json({
+      content: result.text,
+      products: result.products || []
+    });
 
   } catch (error: any) {
     console.error("Route Handler Error:", error);

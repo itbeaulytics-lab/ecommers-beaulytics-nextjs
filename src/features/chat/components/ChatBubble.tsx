@@ -1,6 +1,7 @@
 import { ChatMessage } from "@/hooks/useSkinChat";
 import { formatContent } from "@/shared/lib/formatText";
 import Image from "next/image";
+import Link from "next/link";
 interface ChatBubbleProps {
     message: ChatMessage;
 }
@@ -47,6 +48,36 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
                             }`}
                         dangerouslySetInnerHTML={{ __html: formatContent(textContent) }}
                     />
+                )}
+
+                {/* UI PRODUK REKOMENDASI AI */}
+                {message.products && message.products.length > 0 && (
+                    <div className="w-full mt-2 bg-white border border-brand-primary/20 rounded-2xl p-4 shadow-sm">
+                        <div className="flex items-center gap-2 mb-3">
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-primary/10 text-brand-primary text-xs">✨</span>
+                            <p className="text-xs font-bold text-brand-dark tracking-wide uppercase">Rekomendasi AI Untukmu</p>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                            {message.products.map((p: any) => (
+                                <Link href={`/products/${p.id}`} key={p.id} className="flex items-center gap-3 p-3 border border-neutral-100 rounded-xl hover:border-brand-primary hover:bg-brand-primary/5 transition-all group">
+                                    <div className="relative w-14 h-14 rounded-lg bg-neutral-50 overflow-hidden shrink-0 border border-neutral-100 group-hover:border-brand-primary/30">
+                                        {p.image ? (
+                                            <Image src={p.image} alt={p.name} fill className="object-cover p-1 mix-blend-multiply" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-[10px] text-neutral-400">No Image</div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-bold text-brand-dark line-clamp-1 group-hover:text-brand-primary transition-colors">{p.name}</p>
+                                        <p className="text-xs text-brand-light line-clamp-1 mt-0.5">{p.category || 'Skincare'}</p>
+                                        <p className="text-sm font-semibold text-emerald-600 mt-1">
+                                            {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(p.price || 0)}
+                                        </p>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
                 )}
 
                 {/* ACTION BUTTONS (ex: Login Prompt) */}

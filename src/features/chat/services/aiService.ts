@@ -1,4 +1,5 @@
 import Groq from "groq-sdk";
+import { createClient } from "@supabase/supabase-js";
 
 const VISION_MODEL = "meta-llama/llama-4-maverick-17b-128e-instruct";
 const BRAIN_MODEL = "openai/gpt-oss-120b";
@@ -58,14 +59,16 @@ const ANALYSIS_PROMPT =
 const CHAT_PROMPT =
     "You are a friendly and personal skincare and body care bestie. You speak in a warm, engaging, and casual Indonesian tone (using terms like 'Kak', 'Bestie'). " +
     "Your Goal: Provide a consultative dermatology experience.\n\n" +
-    "STRICT RESPONSE FLOW (Follow this order):\n" +
-    "1. ANALYSIS: Analyze the user's skin condition based on their description or image. Explain WHAT it is and WHY it might be happening (causes).\n" +
-    "2. TIPS: Give immediate behavioral/lifestyle advice to reduce infection or aggravation (e.g., 'Jangan dipencet ya kak', 'Hindari makanan berminyak').\n" +
-    "3. PERMISSION: **DO NOT** recommend specific products yet. Instead, ask the user: 'Mau aku rekomendasiin produk yang cocok buat kondisi ini, Bestie?'\n\n" +
-    "RULES:\n" +
-    "- If the user explicitly asks for products *after* you offered, THEN you can list valid products.\n" +
-    "- If this is the FIRST interaction about a problem, NEVER list products immediately. Stick to Analysis + Tips + Permission.\n" +
-    "- Refuse off-topic questions politely.";
+    "STRICT RESPONSE FLOW:\n" +
+    "1. ANALYSIS: Analyze the user's skin condition based on their description or image.\n" +
+    "2. TIPS: Give immediate behavioral/lifestyle advice.\n" +
+    "3. PERMISSION: Ask the user if they want product recommendations.\n\n" +
+    "MAGIC SEARCH RULE:\n" +
+    "- If the user EXPLICITLY asks for product recommendations, provide your advice, and AT THE VERY END of your message, you MUST output a search trigger like this: `[SEARCH: keyword]`.\n" +
+    "- Example 1: `[SEARCH: salicylic acid]`\n" +
+    "- Example 2: `[SEARCH: sunscreen]`\n" +
+    "- Example 3: `[SEARCH: acne]`\n" +
+    "- ONLY use ONE main keyword. Do NOT use the [SEARCH] tag if they haven't asked for products yet.";
 
 const DIAGNOSIS_PROMPT =
     "You are a professional Dermatologist AI. Your task is to generate a structured Medical Report based on the patient's skin analysis.\n" +
@@ -200,5 +203,31 @@ export async function processSkinAnalysis({ messages, mode, apiKey }: ProcessSki
     });
 
     const message = completion?.choices?.[0]?.message;
-    return message?.content || (message as any)?.reasoning || "";
+    let replyText = message?.content || (message as any)?.reasoning || "";
+    let recommendedProducts: any[] = [];
+
+    // TANGKAP MAGIC KEYWORD DARI AI DAN CARI KE DATABASE
+    const searchMatch = replyText.match(/\[SEARCH:\s*([^\]]+)\]/i);
+    if (searchMatch && mode === "chat") {
+        const queryTerm = searchMatch[1].trim().toLowerCase();
+        replyText = replyText.replace(searchMatch[0], "").trim();
+
+        try {
+            const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+            const { data } = await supabase.from("products").select("id, name, price, image, category, ingredients, concerns").limit(50);
+
+            if (data) {
+                recommendedProducts = data.filter((p: any) =>
+                    p.name.toLowerCase().includes(queryTerm) ||
+                    (p.category && p.category.toLowerCase().includes(queryTerm)) ||
+                    (Array.isArray(p.ingredients) && p.ingredients.some((i: string) => i.toLowerCase().includes(queryTerm))) ||
+                    (Array.isArray(p.concerns) && p.concerns.some((b: string) => b.toLowerCase().includes(queryTerm)))
+                ).slice(0, 3); // Ambil maksimal 3 produk terbaik
+            }
+        } catch (e) {
+            console.error("Gagal menarik produk:", e);
+        }
+    }
+
+    return { text: replyText, products: recommendedProducts };
 }
