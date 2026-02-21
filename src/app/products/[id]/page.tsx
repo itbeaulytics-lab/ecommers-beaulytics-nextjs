@@ -64,14 +64,7 @@ export default async function ProductDetailPage({ params }: Params) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let userProfile = null;
-  if (user && user.user_metadata?.skin_profile?.answers) {
-    const answers = user.user_metadata.skin_profile.answers;
-    userProfile = {
-      skin_type: String(answers["q1_sebum_after_wash"] || ""),
-      skin_concerns: answers["q12_skin_concerns"] || [],
-    };
-  }
+
 
   const { data } = await supabase
     .from("products")
@@ -171,7 +164,6 @@ export default async function ProductDetailPage({ params }: Params) {
       <div className="hidden lg:block">
         <ProductDetailDesktop
           user={user}
-          userProfile={userProfile}
           product={product}
           clickCount={clickCount}
           hasRating={hasRating}
@@ -186,7 +178,6 @@ export default async function ProductDetailPage({ params }: Params) {
       <div className="block lg:hidden">
         <ProductDetailMobile
           user={user}
-          userProfile={userProfile}
           product={product}
           clickCount={clickCount}
           hasRating={hasRating}
