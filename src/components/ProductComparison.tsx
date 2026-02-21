@@ -29,7 +29,6 @@ export default function ProductComparison({ products, userProfile }: Props) {
   useEffect(() => {
     setMounted(true);
     // Debugger buat mastiin data profil lu beneran nyampe ke tabel
-    console.log("Data Profil untuk AI di Halaman Compare:", userProfile);
   }, [userProfile]);
 
   if (!mounted) {
