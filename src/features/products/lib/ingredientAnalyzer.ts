@@ -11,7 +11,12 @@ export function analyzeIngredients(ingredients?: string[] | null): IngredientBad
     }
 
     const badges: IngredientBadge[] = [];
-    const lowerIngredients = ingredients.map(i => i.toLowerCase());
+
+    // NORMALISASI: Pecah semua koma (jaga-jaga kalau datanya gabung) lalu bersihin spasi
+    const normalizedIngredients = ingredients
+        .flatMap(i => i.split(','))
+        .map(i => i.trim().toLowerCase())
+        .filter(i => i.length > 0);
 
     // Helper flags
     let hasAlcohol = false;
@@ -20,50 +25,53 @@ export function analyzeIngredients(ingredients?: string[] | null): IngredientBad
 
     const highlightsFound = new Set<string>();
 
-    for (const ingredient of lowerIngredients) {
+    for (const ingredient of normalizedIngredients) {
         // 1. Negative Triggers
-        // Alcohol (exclude fatty alcohols which are generally good/safe)
+        // Deteksi Alkohol jahat (Abaikan alkohol baik/fatty alcohol)
         if (
             ingredient.includes('alcohol') &&
             !ingredient.includes('cetyl') &&
             !ingredient.includes('stearyl') &&
             !ingredient.includes('cetearyl') &&
-            !ingredient.includes('behenyl')
+            !ingredient.includes('behenyl') &&
+            !ingredient.includes('panthenol') // Panthenol = pro-vit B5 (bukan alkohol jahat)
         ) {
             hasAlcohol = true;
         }
 
-        // Fragrance / Parfum
-        if (ingredient.includes('fragrance') || ingredient.includes('parfum')) {
+        // Fragrance / Parfum / Minyak Esensial
+        if (ingredient.includes('fragrance') || ingredient.includes('parfum') || ingredient.includes('essential oil')) {
             hasFragrance = true;
         }
 
-        // Sulfate
-        if (ingredient.includes('sulfate')) {
+        // Sulfate (SLS/SLES)
+        if (ingredient.includes('sulfate') || ingredient.includes('sls')) {
             hasSulfate = true;
         }
 
-        // 2. Highlights / Positive
-        if (ingredient.includes('niacinamide')) highlightsFound.add('Niacinamide');
-        if (ingredient.includes('salicylic acid') || ingredient.includes('bha')) highlightsFound.add('Salicylic Acid');
-        if (ingredient.includes('hyaluronic') || ingredient.includes('sodium hyaluronate')) highlightsFound.add('Hyaluronic Acid');
-        if (ingredient.includes('ceramide')) highlightsFound.add('Ceramide');
-        if (ingredient.includes('retinol') || ingredient.includes('retinoid')) highlightsFound.add('Retinol');
+        // 2. Highlights / Hero Ingredients
+        if (ingredient.includes('niacinamide')) highlightsFound.add('✨ Niacinamide');
+        if (ingredient.includes('salicylic acid') || ingredient.includes('bha')) highlightsFound.add('✨ Salicylic Acid');
+        if (ingredient.includes('hyaluronic') || ingredient.includes('sodium hyaluronate')) highlightsFound.add('💧 Hyaluronic Acid');
+        if (ingredient.includes('ceramide')) highlightsFound.add('🛡️ Ceramide');
+        if (ingredient.includes('retinol') || ingredient.includes('retinoid')) highlightsFound.add('⏳ Retinol');
+        if (ingredient.includes('centella') || ingredient.includes('cica')) highlightsFound.add('🌿 Centella Asiatica');
     }
 
-    // Add highlight badges
+    // Add highlight badges (Bahan Unggulan)
     highlightsFound.forEach(label => {
         badges.push({ label, status: 'highlight' });
     });
 
-    // Add negative badges
-    if (hasAlcohol) badges.push({ label: 'Mengandung Alkohol', status: 'negative' });
-    if (hasFragrance) badges.push({ label: 'Mengandung Pewangi', status: 'negative' });
-    if (hasSulfate) badges.push({ label: 'Mengandung Sulfat', status: 'negative' });
+    // Add negative badges (Peringatan)
+    if (hasAlcohol) badges.push({ label: '⚠️ Mengandung Alkohol', status: 'negative' });
+    if (hasFragrance) badges.push({ label: '⚠️ Mengandung Pewangi', status: 'negative' });
+    if (hasSulfate) badges.push({ label: '⚠️ Mengandung Sulfat', status: 'negative' });
 
-    // Add positive missing triggers
-    if (!hasAlcohol) badges.push({ label: 'Bebas Alkohol', status: 'positive' });
-    if (!hasFragrance) badges.push({ label: 'Bebas Pewangi', status: 'positive' });
+    // Add positive missing triggers (Klaim Aman)
+    if (!hasAlcohol) badges.push({ label: '🟢 Bebas Alkohol', status: 'positive' });
+    if (!hasFragrance) badges.push({ label: '🟢 Bebas Pewangi', status: 'positive' });
+    if (!hasSulfate) badges.push({ label: '🟢 Bebas Sulfat', status: 'positive' });
 
     return badges;
 }

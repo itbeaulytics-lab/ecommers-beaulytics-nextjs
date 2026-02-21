@@ -98,8 +98,12 @@ export default async function ProductDetailPage({ params }: Params) {
     category_id: Number(data.category_id) || 0,
     product_type_id: Number(data.product_type_id) || 0,
     description: data.description ?? "",
-    ingredients: Array.isArray(data.ingredients) ? data.ingredients : [],
-    skin_type: Array.isArray(data.skin_type) ? data.skin_type : [],
+    ingredients: Array.isArray(data.ingredients)
+      ? data.ingredients
+      : (typeof data.ingredients === 'string' ? data.ingredients.split(',').map(i => i.trim()) : []),
+    skin_type: Array.isArray(data.skin_type)
+      ? data.skin_type
+      : (typeof data.skin_type === 'string' ? data.skin_type.split(',').map(i => i.trim()) : []),
     concerns: Array.isArray(data.concerns) ? data.concerns : [],
     how_to_use: data.how_to_use ?? "",
     brand: data.brand ?? "",
