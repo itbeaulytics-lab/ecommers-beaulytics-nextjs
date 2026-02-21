@@ -68,15 +68,19 @@ export function analyzeIngredients(ingredients?: string[] | null, userProfile?: 
         badges.push({ label, status: 'highlight' });
     });
 
+    const isAcneProne = userProfile?.skin_concerns?.some(c => c.toLowerCase().includes('jerawat'));
+    const isDrySkin = userProfile?.skin_type?.toLowerCase().includes('kering');
+    const isSensitive = userProfile?.skin_type?.toLowerCase().includes('sensitif') || userProfile?.skin_concerns?.some(c => c.toLowerCase().includes('sensitif'));
+
     // Personalized Acne Check
-    if (userProfile?.skin_concerns?.includes('Jerawat') &&
+    if (isAcneProne &&
         (highlightsFound.has('✨ Salicylic Acid') || highlightsFound.has('🌿 Centella Asiatica'))) {
         badges.push({ label: '✨ Cocok untuk meredakan Jerawat Anda', status: 'highlight' });
     }
 
     // Add negative badges (Peringatan)
     if (hasAlcohol) {
-        if (userProfile?.skin_type?.includes('Kering')) {
+        if (isDrySkin) {
             badges.push({ label: '⚠️ Alkohol (Bikin kulit Anda makin kering)', status: 'negative' });
         } else {
             badges.push({ label: '⚠️ Mengandung Alkohol', status: 'negative' });
@@ -84,7 +88,7 @@ export function analyzeIngredients(ingredients?: string[] | null, userProfile?: 
     }
 
     if (hasFragrance) {
-        if (userProfile?.skin_type?.includes('Sensitif')) {
+        if (isSensitive) {
             badges.push({ label: '⚠️ Pewangi (Rentan untuk kulit sensitif Anda)', status: 'negative' });
         } else {
             badges.push({ label: '⚠️ Mengandung Pewangi', status: 'negative' });
