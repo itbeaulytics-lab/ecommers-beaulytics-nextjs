@@ -13,9 +13,7 @@ export default async function ComparePage() {
     const answers = user.user_metadata.skin_profile.answers;
     userProfile = {
       skin_type: String(answers["q1_sebum_after_wash"] || ""),
-      skin_concerns: Array.isArray(answers["q12_skin_concerns"])
-        ? answers["q12_skin_concerns"]
-        : [],
+      skin_concerns: answers["q12_skin_concerns"] || [],
     };
   }
 
